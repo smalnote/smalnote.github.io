@@ -3,17 +3,17 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle: ''
-description: ''
+title: Smalnote
+subtitle: 'Learning Make Me Ignorant'
+description: 'Feynman-Technique Site'
 keywords:
-author: John Doe
-language: en
-timezone: ''
+author: smalnote
+language: zh
+timezone: 'Asia/Shanghai'
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://example.com
+url: http://smalnote.github.io
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
