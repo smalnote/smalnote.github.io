@@ -1,0 +1,773 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/favicon.png">
+  <link rel="icon" href="/images/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="smalnote">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="🎊 2022 年了，作为一个后端工程师，如何入坑前端，成为全干程师。 本文以做一个共享购物车的 Web 端为目标，从框架选型，配套工具链，编程语言语法，CSS 样式等等，涉及做一个前端项目的方方面面，啥都整一点，再次入坑前端，以主观视角总结一下。  框架及工具链选型其实我在几年之前也入坑过前端，用过 Angular 写过用于接口测试的工具，也因此被领导作为幸运儿选中，将已有的一个用 Delph">
+<meta property="og:type" content="article">
+<meta property="og:title" content="全干工程师：后端工程师入坑前端总结">
+<meta property="og:url" content="http://smalnote.github.io/2022/11/17/%E5%85%A8%E5%B9%B2%E5%B7%A5%E7%A8%8B%E5%B8%88%EF%BC%9A%E5%90%8E%E7%AB%AF%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%A5%E5%9D%91%E5%89%8D%E7%AB%AF%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Smalnote">
+<meta property="og:description" content="🎊 2022 年了，作为一个后端工程师，如何入坑前端，成为全干程师。 本文以做一个共享购物车的 Web 端为目标，从框架选型，配套工具链，编程语言语法，CSS 样式等等，涉及做一个前端项目的方方面面，啥都整一点，再次入坑前端，以主观视角总结一下。  框架及工具链选型其实我在几年之前也入坑过前端，用过 Angular 写过用于接口测试的工具，也因此被领导作为幸运儿选中，将已有的一个用 Delph">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://smalnote.github.io/2022/11/17/images/context_menu_show.png">
+<meta property="og:image" content="http://smalnote.github.io/2022/11/17/images/cartcart_carter_hidden.png">
+<meta property="og:image" content="http://smalnote.github.io/2022/11/17/images/cartcart_new_item.png">
+<meta property="og:image" content="http://smalnote.github.io/2022/11/17/images/cartcart_new_cart.png">
+<meta property="og:image" content="http://smalnote.github.io/2022/11/17/images/cartcart_presentation.jpg">
+<meta property="article:published_time" content="2022-11-17T11:55:35.128Z">
+<meta property="article:modified_time" content="2022-11-21T12:18:03.983Z">
+<meta property="article:author" content="smalnote">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://smalnote.github.io/2022/11/17/images/context_menu_show.png">
+  
+  
+  
+  <title>全干工程师：后端工程师入坑前端总结 - Smalnote</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"smalnote.github.io","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Smalnote</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/qq_lion.jpeg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="全干工程师：后端工程师入坑前端总结"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-11-17 19:55" pubdate>
+          2022年11月17日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          15k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          122 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">全干工程师：后端工程师入坑前端总结</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>🎊 2022 年了，作为一个后端工程师，如何入坑前端，成为全干程师。 本文以做一个共享购物车的 Web 端为目标，从框架选型，配套工具链，编程语言语法，CSS 样式等等，涉及做一个前端项目的方方面面，啥都整一点，再次入坑前端，以主观视角总结一下。</p>
+</blockquote>
+<h2 id="框架及工具链选型"><a href="#框架及工具链选型" class="headerlink" title="框架及工具链选型"></a><strong>框架及工具链选型</strong></h2><p>其实我在几年之前也入坑过前端，用过 Angular 写过用于接口测试的工具，也因此被领导作为<strong>幸运儿</strong>选中，将已有的一个用 Delphi 写的金融后台管理系统搬到浏览器上。Angular 在前端三驾马车(React&#x2F;Vue&#x2F;Angular)里面好像一直不太受待见，作为已经弃坑的人，个人评价是 Angular 是为为框架区别于 React&#x2F;Vue 的，选择了 Angular，也即绑定了相应的工具链，自由度也低很多，同时 Angular 也开箱即用的附带一套完整的工程实践，没有什么 Redux, Vuex 等等。这对新手快速入门写出可以上线的系统还是有好处的，坏处则是 <code>TOO HEAVY</code> 了，运行起来也能明显感觉到延迟，有很多现成的组件可以用，包括阴影爱好者 <strong>Material UI</strong> 也算是官方出品的，但是要自定义这些组件的逻辑或格式基本上就不可能了。</p>
+<p>之前弃坑主要的原因是前端工具链太庞杂了，包括浏览器令人恐惧的适配问题，繁多的 JavaScript 版本(ES5, ES6, ESnext, ES2015…)；也整出了 Babel 这种将高版本 JS 语法代码编译成适配旧浏览器的低版本运行环时的编译器；用 polyfill 适配不同厂商的浏览器；而 Node.js 的包管理工具就有 npm, pnpm, yarn，配合 960 万平方公里的局域网，下载依赖等个半小时然后 <strong>TIMEOUT</strong> 也是时不时的事，顺便吐槽一下 Node.js 包的海量小文件简直是机械硬盘杀手；也有大佬 <code>Anders Hejlsberg</code> 发明了 TypeScript 来克服 JS 动态类型的安全问题和大型工程的开发效率问题；在 CSS 预处理器领域，也有诸如 LESS, Sass, Stylus 等工具；最后 JS 模块化也有 CommonJS 和 ESModule，视运行环境和 Node.js 版本决定那种方式可用或者混用。</p>
+<p>此次重新入坑，主要是有了 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzAxODE2MjM1MA==&mid=2651609107&idx=1&sn=1a9852c5b75c93a2cfe1cc75976fbc7e">2022 年 JavaScript 开发工具的生态，别再用过时的框架了！</a> 这篇文章作为参考，轻松选择了 React.js + Next.js + TailwindCSS + axios 等来构建应用。另一个参考的是 <a target="_blank" rel="noopener" href="https://roadmap.sh/frontend">Frontend Developer Roadmap</a>，用路线图的方式解构了前端开发的方方面面，对于前端知识框架的查漏补缺非常有帮助。</p>
+<h3 id="React-js"><a href="#React-js" class="headerlink" title="React.js"></a><strong>React.js</strong></h3><p>上次学习 <a target="_blank" rel="noopener" href="https://reactjs.org/">React.js</a> 学到在 Class Component 里面写 <code>this.deleteRow.bind(this, id)</code> 这种代码的时候就被劝退了。React 16.8 引入 <a target="_blank" rel="noopener" href="https://reactjs.org/docs/hooks-intro.html">Hooks</a> 之后，算是消除了这个担忧 😟。</p>
+<h3 id="Next-js"><a href="#Next-js" class="headerlink" title="Next.js"></a><strong>Next.js</strong></h3><p><a target="_blank" rel="noopener" href="https://nextjs.org/docs/getting-started">Next.js</a> 是构建在 React.js 上的前端开发框架，集成了编译器，CSS 预处理，路由等等，大大简化了前端工程化的问题，同时还引入了 SSR, SSG 等高级特性；使前端应用不再仅仅是运行在浏览器上面的单页面应用，也可以有对应的后端，最近来推出了号称比 <code>WebPack</code> 快 “<strong>700倍</strong>“ 的 TurboPack。</p>
+<h3 id="TailwindCSS"><a href="#TailwindCSS" class="headerlink" title="TailwindCSS"></a><strong>TailwindCSS</strong></h3><p><a target="_blank" rel="noopener" href="https://tailwindui.com/">Tailwind</a> 提供一套标准的，风格一致的 CSS 样式集合，可以完全不写一行 CSS 代码，只通过 class 的组合实现的丰富的视觉样式；从有限的集合中选取可用的 <code>class name</code> 一方面可以保证风格一致，另一方面可以方便样式的管理，不至于像每个页面单独写一个 CSS 文件混乱分散，定义各种蹩脚的 class name；最后，TailwindCSS 配合 PostCSS 具，可以自动扫描项目中用到的 <code>class name</code> 输出一个用到的样式集合 CSS 文件，减少构建产物的体积，提高页面加载速度。</p>
+<h2 id="JavaScript-amp-Node-js"><a href="#JavaScript-amp-Node-js" class="headerlink" title="JavaScript &amp; Node.js"></a><strong>JavaScript &amp; Node.js</strong></h2><blockquote>
+<p>本节介绍一些项目中必须要理解又容易被忽略的基本概念，导致新手（指我🥺）在开发过程中很容易知其然，不知其所以然。</p>
+</blockquote>
+<h3 id="JavaScript-Modules"><a href="#JavaScript-Modules" class="headerlink" title="JavaScript Modules"></a><strong>JavaScript Modules</strong></h3><p>最初版本的 JavaScript 被设计成运行在浏览器中，通常是内嵌在 HTML 页面中的 <code>&lt;script /&gt;</code> 代码，通过同步或异步的方式加载，并没有模块的概念，所有变量，常量，函数是全局可见的；这显然限制了前端的工程化。参考文档：<a target="_blank" rel="noopener" href="https://reflectoring.io/nodejs-modules-imports/">CommonJS vs. ES Modules: Modules and Imports in NodeJS</a> .</p>
+<h4 id="CommonJS-Modules"><a href="#CommonJS-Modules" class="headerlink" title="CommonJS Modules"></a><strong>CommonJS Modules</strong></h4><p>在 <code>CommonJS Module</code> 模式下，每一个 <code>.js</code> 文件都是一个模块，通过 <code>module.exports</code> 导出文件中的 <code>symbol</code>，换言之，其它非导出的变量，常量，函数等，外部不可直接引用。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-comment">// file bar.js</span><br><span class="hljs-keyword">const</span> message = <span class="hljs-string">&quot;Hello, world!&quot;</span>; <span class="hljs-comment">// 模块外不可见</span><br><span class="hljs-keyword">const</span> <span class="hljs-title function_">greeting</span> = (<span class="hljs-params"></span>) =&gt; &#123;<br>    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(message);<br>&#125;<br><br><span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = &#123; greeting &#125;; <span class="hljs-comment">// 导出函数 bar</span><br></code></pre></td></tr></table></figure>
+
+<p><code>module.exports</code> 可以简写成 <code>exports</code>，因此 <code>bar.js</code> 中的导出表达式也有对应的写法。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs js">#<span class="hljs-number">1</span><br><span class="hljs-built_in">exports</span>.<span class="hljs-property">greeting</span> = greeting;<br>#<span class="hljs-number">2</span><br><span class="hljs-built_in">exports</span>.<span class="hljs-property">hello</span> = greeting; <span class="hljs-comment">// 将 greeting 以 hello 我名字导出</span><br>#<span class="hljs-number">3</span><br><span class="hljs-built_in">exports</span> = &#123;<br>    <span class="hljs-attr">hello</span>: greeting, <span class="hljs-comment">// 与 #2 等价</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>通过 <code>require</code> 导入其它模块</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-comment">// file foo.js</span><br><span class="hljs-keyword">const</span> bar = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;bar&quot;</span>); <span class="hljs-comment">// 导入 bar.js 模块，模块名为去掉了后缀的文件名</span><br>bar.<span class="hljs-title function_">greeting</span>();<br><br><span class="hljs-keyword">const</span> &#123; greeting &#125; = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;bar&quot;</span>); <span class="hljs-comment">// 仅导入指定的 symbol</span><br></code></pre></td></tr></table></figure>
+
+<p>实际上可以将任意类型赋值给 <code>module.exports</code>，如 <code>class</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-comment">// file bar.js</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Logger</span> &#123;<br>    <span class="hljs-keyword">static</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params">message</span>) &#123;<br>        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>, message);<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// file foo.js</span><br><span class="hljs-keyword">const</span> <span class="hljs-title class_">Logger</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;./bar&quot;</span>);<br><span class="hljs-title class_">Logger</span>.<span class="hljs-title function_">debug</span>(<span class="hljs-string">&quot;hello, world!&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://nodejs.org/"><code>Node.js</code></a> 默认支持 CommonJS Module，JavaScript ECMAScript(ES2015) 标准制定了标准的模块化规范 <code>ES Module</code>.</p>
+<h4 id="ES-Modules"><a href="#ES-Modules" class="headerlink" title="ES Modules"></a><strong>ES Modules</strong></h4><p>ES Module 也是以文件为单位作为模块，为了区别于 <code>.js</code> 文件默认作为 CommonJS Module, 规范定义 ES Module 文件的后缀名为 <code>.mjs</code>，实际实用一般仍用 <code>.js</code> 后缀，通过配置可自动识别文件使用的是那种 Module.</p>
+<p>将前面的 Logger 改造成 ES Module 如下，</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-comment">// bar.mjs</span><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Logger</span> &#123;<br>    <span class="hljs-keyword">static</span> <span class="hljs-title function_">debug</span>(<span class="hljs-params">message</span>) &#123;<br>        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;DEBUG&quot;</span>, message);<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 模块可以有一个 export default，但可以有多个其它 export </span><br><span class="hljs-keyword">export</span> message = <span class="hljs-string">&quot;Hello, world!&quot;</span>;<br><span class="hljs-keyword">export</span> count = <span class="hljs-number">42</span>;<br><br><span class="hljs-comment">// 也可以集中导出</span><br><span class="hljs-keyword">export</span> &#123; message, count &#125;;<br></code></pre></td></tr></table></figure>
+
+<p>通过 import 方式导入，</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-comment">// foo.mjs</span><br><span class="hljs-keyword">import</span> <span class="hljs-title class_">Logger</span>, &#123; message, count &#125; <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./bar&quot;</span>;<br><span class="hljs-title class_">Logger</span>.<span class="hljs-title function_">debug</span>(<span class="hljs-string">&quot;hello, world!&quot;</span>);<br><span class="hljs-title class_">Logger</span>.<span class="hljs-title function_">debug</span>(count);<br><span class="hljs-title class_">Logger</span>.<span class="hljs-title function_">debug</span>(message);<br><br><span class="hljs-comment">// 当导入命名有冲突时，也可以重命名导入</span><br><span class="hljs-keyword">import</span> &#123; <span class="hljs-keyword">default</span> <span class="hljs-keyword">as</span> <span class="hljs-title class_">BarLogger</span>, message <span class="hljs-keyword">as</span> defaultMessage, count&#125; <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./bar&quot;</span>;<br><br><span class="hljs-comment">// 导入成模块</span><br><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> bar <span class="hljs-string">&quot;./bar&quot;</span>;<br><span class="hljs-title class_">Logger</span>.<span class="hljs-title function_">debug</span>(bar.<span class="hljs-property">message</span>);<br></code></pre></td></tr></table></figure>
+
+<h4 id="Dynamic-vs-Static"><a href="#Dynamic-vs-Static" class="headerlink" title="Dynamic vs. Static"></a><strong>Dynamic vs. Static</strong></h4><p>CommonJS 的 <code>requre()</code> 导入函数是在运行时动态解析导入的，也就是说 <code>require()</code> 可以像普通的函数那样使用，按需要导入，而 ES Module 的 <code>import</code> 是静态，在编译阶段就需要确定导入依赖，因些只能出现的文件头。</p>
+<h4 id="index-js-与类型提示"><a href="#index-js-与类型提示" class="headerlink" title="index.js 与类型提示"></a><strong>index.js 与类型提示</strong></h4><p>前面介绍的模块导入时，都是以文件名去掉后缀作为模块名，实际上也可以将文件夹名作为模块名（这可能也是为什么导入的时候不加文件名后缀的原因吧）</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-comment">// 假设有文件夹 server 及其中的文件如下</span><br><span class="hljs-comment">// server</span><br><span class="hljs-comment">// ├── foo.js</span><br><span class="hljs-comment">// ├── bar.js</span><br><span class="hljs-comment">// ├── index.d.ts</span><br><span class="hljs-comment">// └── index.js</span><br><span class="hljs-comment">// 则将 index.js 作为 server 文件夹的默认模块导入如下</span><br><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> server <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./server&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这种导入文件夹的方式有一个非常有用的地方在于可以在文夹中添加一个 index.d.ts 作为 index.js 中导出类型的定义 <a target="_blank" rel="noopener" href="https://www.typescriptlang.org/docs/handbook/declaration-files/by-example.html">Declartion Reference</a>，辅助 IDE（如：VSCode）进行类型提示，而又不必采用 <code>TypeScript</code>，作为 JavaScript 动态类型的补充。另一方面，也可以在非 index.js 文件中定义非导出类型，统一在 index.js 文件中导出，将文件夹整体作为一个模块，就像 <code>package.json</code> 中导入的依赖一样。</p>
+<p>注意：CommonJS Module 中可以通过 import 命令被导入到 ES Module，反之则不行。</p>
+<h3 id="package-json"><a href="#package-json" class="headerlink" title="package.json"></a><strong>package.json</strong></h3><p><code>package.json</code> 是 Node.js 项目的配置文件，用来管理依赖，脚本，被作为库导入时的入口等。</p>
+<h4 id="script"><a href="#script" class="headerlink" title="script"></a><strong>script</strong></h4><p><code>npm run</code> 命令运行的脚本，会自动创建一个 shell 脚本，并将当前项目目录下的 <code>node_modules/.bin</code> 子目录加入到 PATH 变量中，因此在 <code>scripts</code> 下可以直接调用 node_modules&#x2F;bin 下的命令。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;scripts&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;build&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;esbuild index.js&quot;</span><br>        <span class="hljs-comment">// 等价于 &quot;build&quot;: &quot;./node_modules/.bin/esbuild index.js&quot;</span><br>        <span class="hljs-comment">// 使用 npm run build 触发</span><br>    <span class="hljs-punctuation">&#125;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="bin"><a href="#bin" class="headerlink" title="bin"></a><strong>bin</strong></h4><p><code>bin</code> 指定了项目作为 npm 包的执行入口，当项目作为包被安装到全局或其它项目时，以命令的方式执行的入口脚本文件。如：@bytepack&#x2F;cli 的 npm 包，</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;bin&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;bytepack&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;./bin/index.js&quot;</span><br>    <span class="hljs-punctuation">&#125;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>全局安装 @bytepack&#x2F;cli 包后，执行 <code>bytepack -v</code> 命令就相当于执行 <code>node ./bin/index.js -v</code> 命令。</p>
+<h4 id="type"><a href="#type" class="headerlink" title="type"></a><strong>type</strong></h4><p><code>type</code> 指定项目的模块化规范</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;some package&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;module&quot;</span> || <span class="hljs-string">&quot;commonjs&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>需要注意的是：</p>
+<ul>
+<li>不指定type的时候，type 的默认值是 commonjs，不过建议 npm 包都指定一下 type</li>
+<li>当 type 字段指定值为 module 则采用 ESModule 规范</li>
+<li>当 type 字段指定时，目录下的所有 .js 后缀结尾的文件，都遵循 type 所指定的模块化规范</li>
+<li>除了 type 可以指定模块化规范外，通过文件的后缀来指定文件所遵循的模块化规范，以 .mjs 结尾的文件就是使用的 ESModule 规范，以 .cjs 结尾的遵循的是 commonjs 规范</li>
+</ul>
+<h4 id="expports"><a href="#expports" class="headerlink" title="expports"></a><strong>expports</strong></h4><p>如果在package.json中定义了exports字段，那么这个字段所定义的内容就是该npm包的真实和全部的导出，优先级会高于main和file等字段。</p>
+<p>举例来说：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>  <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;pkg&quot;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;exports&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;.&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;./main.mjs&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;./foo&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;./foo.js&quot;</span><br>  <span class="hljs-punctuation">&#125;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-keyword">import</span> &#123; something &#125; <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;pkg&quot;</span>; <span class="hljs-comment">// from &quot;pkg/main.mjs&quot;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-keyword">const</span> &#123; something &#125; = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;pkg/foo&quot;</span>); <span class="hljs-comment">// require(&quot;pkg/foo.js&quot;)</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="peerDependenceis"><a href="#peerDependenceis" class="headerlink" title="peerDependenceis"></a><strong>peerDependenceis</strong></h4><p>peerDependencies是package.json中的依赖项,可以解决核心库被下载多次，以及统一核心库版本的问题。</p>
+<h4 id="package-json三方属性"><a href="#package-json三方属性" class="headerlink" title="package.json三方属性"></a><strong>package.json三方属性</strong></h4><p>package.json中也存在很多三方属性，比如tsc中使用的types、构建工具中使用的sideEffects,git中使用的husky，eslint使用的eslintIgnore，这些扩展的配置，针对特定的开发工具是有意义的这里不一一举例。</p>
+<p>更多配置参考：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/91uQb5NKpINgdTEF9L0eMQ">package.json 配置介绍</a>.</p>
+<h3 id="Local-Storage-vs-Session-Storage-vs-Cookie"><a href="#Local-Storage-vs-Session-Storage-vs-Cookie" class="headerlink" title="Local Storage vs. Session Storage vs. Cookie"></a><strong>Local Storage vs. Session Storage vs. Cookie</strong></h3><p>简单介绍浏览器端的存储的选择，所有的存储都是范围都是限定域名下面的，即：<code>a.com</code> 域名的存储不能被 <code>b.com</code> 域名的代码读取到。参考文档：<a target="_blank" rel="noopener" href="https://www.xenonstack.com/insights/local-vs-session-storage-vs-cookie">Local Storage vs Session Storage vs Cookie</a>.</p>
+<h4 id="Local-Storage"><a href="#Local-Storage" class="headerlink" title="Local Storage"></a><strong>Local Storage</strong></h4><p>Local Storage 中存储的内容是持久的，关闭页面或浏览器不会清除其中的内容，通过 JavaScript 代码进行操作。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-variable language_">localStorage</span>.<span class="hljs-title function_">setItem</span>(key, value);<br><span class="hljs-variable language_">localStorage</span>.<span class="hljs-title function_">getItem</span>(key);<br><span class="hljs-variable language_">localStorage</span>.<span class="hljs-title function_">removeItem</span>(key);<br><span class="hljs-variable language_">localStorage</span>.<span class="hljs-title function_">clear</span>();<br></code></pre></td></tr></table></figure>
+
+<p>Key 和 Value 均为字符串类型，因此存储前需要先将数据序列化，最多大概可存储 10MB。</p>
+<h4 id="Session-Storage"><a href="#Session-Storage" class="headerlink" title="Session Storage"></a><strong>Session Storage</strong></h4><p>Session Storage 与 Local Storage 类似，唯一的不同在于它生命周期比较短，当浏览器 Tab 页关闭时，Session Storage 中的内容清除，最多大概可存储 5MB。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs js">sessionStorage.<span class="hljs-title function_">setItem</span>(key, value);<br>sessionStorage.<span class="hljs-title function_">getItem</span>(key);<br></code></pre></td></tr></table></figure>
+
+<p>Session Storage 一般用不到，除非用来做页面级别的控制。</p>
+<h4 id="Cookie"><a href="#Cookie" class="headerlink" title="Cookie"></a><strong>Cookie</strong></h4><p>Cookie 存储的一般是形如 <code>a=foo;b=bar;token=xxx</code> 的表单数据，当用户点击链接或浏览器自动跳转时请求后端服务器时，浏览器会自动在请求头中带上域名对应的 Cookie 内容而不需要任何 Cliet-Side JavaScript 做操作，相比 Local&#x2F;Session Storage 方便，当然每个请求都携带 Cookie 不可避免地造成带宽浪费。</p>
+<p>Cookie 内容可以由后端服务在返回请求头中设置，如用户登录 <code>a.com</code> 域名后，服务端的响应 Header 中包含 <code>Set-Cookie: token=xxx</code>，浏览器接收到响应后就会自动设置 Cookie 而不需要 JavaScript 代码操作；同时，为了防止恶意代码获取第三方 Cookie，可以在响应头中增加 <code>HttpOnly</code> 来防止 JavaScript 代码读取 Cookie 内容，如：<code>Set-Cookie: token=xxx;HttpOnly</code>，由浏览器实现保证安全性，也可以设置失效时间，过期内容自动销毁。</p>
+<p>Cookie 的缺点，第三方 Cookie 可能被盗用，存储最多 4KB 数据，只存储于浏览器，在小程序等环境只有没有 Cookie。</p>
+<p>更多选项：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plain">Set-Cookie: &lt;name&gt;=&lt;value&gt;[; &lt;Max-Age&gt;=&lt;age&gt;]<br>[; expires=&lt;date&gt;][; domain=&lt;domain_name&gt;]<br>[; path=&lt;some_path&gt;][; secure][; HttpOnly]<br></code></pre></td></tr></table></figure>
+
+<h3 id="工具链选择"><a href="#工具链选择" class="headerlink" title="工具链选择"></a><strong>工具链选择</strong></h3><h4 id="包管理工具-pnpm"><a href="#包管理工具-pnpm" class="headerlink" title="包管理工具 pnpm"></a><strong>包管理工具 pnpm</strong></h4><p>pnpm 比 npm 更节省磁盘空间，yarn 开始被抛弃，相关环境变量, <a target="_blank" rel="noopener" href="https://dev.to/equiman/npm-vs-yarn-vs-pnpm-commands-cheatsheet-3el8">npm vs yarn vs pnpm commands cheatsheet</a>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">export</span> PNPM_HOME=<span class="hljs-variable">$DEVKIT</span>/.pnpm<br><span class="hljs-built_in">export</span> PATH=<span class="hljs-variable">$PATH</span>:<span class="hljs-variable">$PNPM_HOME</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="编译工具-swc"><a href="#编译工具-swc" class="headerlink" title="编译工具 swc"></a><strong>编译工具 swc</strong></h4><p>swc: <a target="_blank" rel="noopener" href="https://swc.rs/">Speedy Web Compiler</a>，用 Rust 开发的极快的 JS&#x2F;TS 编译器，需要 tsc 补充静态类型检查，支持 Next.js, Vercel, Deno 的组件，具备一定的打包能力，Next.js 直接集成了 swc，无需配置。官方介绍：<br><code>SWC can be used for both compilation and bundling. For compilation, it takes JavaScript / TypeScript files using modern JavaScript features and outputs valid code that is supported by all major browsers.</code></p>
+<blockquote>
+<p><strong>SWC is 20x faster than Babel on a single thread and 70x faster on four cores.</strong></p>
+</blockquote>
+<h4 id="打包工具-WebPack"><a href="#打包工具-WebPack" class="headerlink" title="打包工具 WebPack"></a><strong>打包工具 WebPack</strong></h4><p>打包器负责将所有的源文件打包到一起，用于打包第三方库和 Web 应用：</p>
+<ul>
+<li>swc 和 esbuild 提供了基本的打包能力，但与打包器相比功能不全面</li>
+<li>Rollup 只支持第三方库打包，Parcel 只支持 swc 编译器</li>
+<li><strong>WebPack</strong> 支持 Web 应用和第三方库打包，支持 swc, tsc</li>
+</ul>
+<h4 id="VSCode-插件"><a href="#VSCode-插件" class="headerlink" title="VSCode 插件"></a><strong>VSCode 插件</strong></h4><ul>
+<li><strong>VSCode React Refactor</strong></li>
+<li><strong>ESLint</strong></li>
+<li><strong>Prettier ESLint</strong></li>
+<li><strong>Code Spell Checker</strong></li>
+<li><strong>ES7+ React&#x2F;Redux&#x2F;React-Native snippets</strong></li>
+<li><strong>Tailwind CSS Intellisense</strong></li>
+<li><strong>Emmet</strong></li>
+<li><strong>Prettier</strong></li>
+<li><strong>Auto rename tag</strong></li>
+</ul>
+<p>小结：看完前端的铺垫如果还健在的话，那么我们就可以动手创建创建一个 Next.js 工程开始整一个 Web 端共享购物车项目了。</p>
+<h3 id="React-js-amp-Next-js"><a href="#React-js-amp-Next-js" class="headerlink" title="React.js &amp; Next.js"></a><strong>React.js &amp; Next.js</strong></h3><p>首先用 pnpm 创建一个 Next.js 工程，语言方面，不启用 TypeScript，我们只需要 <code>index.d.ts</code> 类型声明来辅助 IDE 做代码提示就够了，一方面，网上的示例代码绝大多数是 JavaScript，另一方面，TypeScript 对于初学者来说收益相对于付出的学习成本不匹配。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">pnpm create next-app<br></code></pre></td></tr></table></figure>
+
+<p>选择了 Next.js，也就选择了 swc, WebPack 等，同时也可时无缝集成 <a target="_blank" rel="noopener" href="https://tailwindcss.com/docs/guides/nextjs">TailwindCSS</a>.</p>
+<p>参考文档：<a target="_blank" rel="noopener" href="https://nextjs.org/docs/api-reference/create-next-app">Create Next App</a>.</p>
+<p>Next.js 官方提供了非常友好的文档，可以直接参考，<a target="_blank" rel="noopener" href="https://nextjs.org/docs/getting-started">Getting Start</a>。</p>
+<h4 id="服务端渲染-SSR"><a href="#服务端渲染-SSR" class="headerlink" title="服务端渲染 SSR"></a><strong>服务端渲染 SSR</strong></h4><p>传统的 Web App (Angular&#x2F;React&#x2F;Vue) 是将项目打包成 JS&#x2F;CSS&#x2F;HTML 等等静态资源，放到静态资源服务器中供浏览器请求，用户在浏览器端访问 Web App 时先请求 HTML&#x2F;CSS&#x2F;JS 等静太资源，浏览器获取到静态资源后，再运行 JS 代码访问后端接口获取动态的数据（如：用户个人数据等）最终渲染成页面呈现给用户。</p>
+<p>Next.js 在传统 Web App 的基础上提供了 Server-Side Rendering(SSR)，即 Next.js 应用是作为后端服务器运行的，用户请求页面时，Next.js 后端应用可以先运行 JS 代码，渲染成 HTML&#x2F;CSS 直接返回给客户端，客户端浏览器获得响应后即可直接呈现给用户，不用二次请求。更多关于 SSR 的优缺点点可以参考：<a target="_blank" rel="noopener" href="https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props">getServerSideProps</a>.</p>
+<h4 id="静态网站生成-SSG"><a href="#静态网站生成-SSG" class="headerlink" title="静态网站生成 SSG"></a><strong>静态网站生成 SSG</strong></h4><p>Static Site Generation(SSG) 进一步地将页面生成前置到编译阶段，允许用户定义 <code>getStaticProps()</code> 函数，在编译的时候运行得到与页面渲染相关的数据，从而改变编译生成页面，对于搜索引擎索引比较有用，参考：<a target="_blank" rel="noopener" href="https://nextjs.org/docs/basic-features/data-fetching/get-static-props">getStaticProps</a>.</p>
+<h4 id="Next-js-项目结构"><a href="#Next-js-项目结构" class="headerlink" title="Next.js 项目结构"></a><strong>Next.js 项目结构</strong></h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs bash">my-app<br>├── next.config.js    <span class="hljs-comment"># 项目配置文件</span><br>├── node_modules<br>├── package.json<br>├── components        <span class="hljs-comment"># 可以复用 React 组件</span><br>├── lib               <span class="hljs-comment"># 项目内 JavaScript 库，如封装调用后端的接口</span><br>├── pages             <span class="hljs-comment"># pages 每个非下划线开头的文件对应一个页面或 API，目录结构与浏览器地址路径对应</span><br>│   ├── api<br>│   │   └── hello.js  <span class="hljs-comment"># 后端 api，可以通过 /api/hello 访问到 hello.js 中的函数</span><br>│   ├── _app.js       <span class="hljs-comment"># 所有的页面都会通过这个渲染，可以在这里加项目全局的代码，如：登录检查，夜间模式</span><br>│   └── index.js      <span class="hljs-comment"># 应用的主页面，即访问 http://localhost:3000 看到的页面</span><br>├── pnpm-lock.yaml<br>├── public<br>│   ├── favicon.ico<br>│   └── vercel.svg<br>├── README.md<br>└── styles<br>    ├── globals.css   <span class="hljs-comment"># 全局 CSS 影响所有组件，TailwindCSS 在这个文件中导入样式</span><br>    └── Home.module.css <span class="hljs-comment"># 被 /pages/index.js 导入</span><br></code></pre></td></tr></table></figure>
+
+<p>关于 Next.js 的路由，可以参考：<a target="_blank" rel="noopener" href="https://nextjs.org/docs/routing/introduction">Routing</a>.</p>
+<h4 id="上下文菜单"><a href="#上下文菜单" class="headerlink" title="上下文菜单"></a><strong>上下文菜单</strong></h4><p>在浏览器，实现上下文菜单并不是很直观，实际上只是模拟传 UI 的上下文菜单的操作。基本的 HTML 元素渲染都是顺序铺开的，而上下文菜单，需要显示的时候覆盖在现有的元素之上，同时点击菜单外的区域隐藏菜单。因此，需要用到 CSS 中的 <code>position: absolute</code> 来设置元素的位置为绝对，同时辅助 <code>left, right, top, bottom</code> 来指定元素的位置，上下左右的参考坐标为元素的最近一个 <code>position: relative</code> 元素。示例如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-keyword">import</span> <span class="hljs-title class_">React</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;react&quot;</span>;<br><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">CreatedBy</span>(<span class="hljs-params">&#123; cart, onAction &#125;</span>) &#123;<br>  <span class="hljs-keyword">const</span> [toggle, setToggle] = <span class="hljs-title class_">React</span>.<span class="hljs-title function_">useState</span>(<span class="hljs-literal">false</span>);<br>  <span class="hljs-keyword">const</span> <span class="hljs-title function_">onToggle</span> = (<span class="hljs-params"></span>) =&gt; &#123;<br>    <span class="hljs-title function_">setToggle</span>(<span class="hljs-function"><span class="hljs-params">toggle</span> =&gt;</span> !toggle);<br>  &#125;;<br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;inline-block&quot;</span>&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">onClick</span>=<span class="hljs-string">&#123;onToggle&#125;</span></span></span><br><span class="hljs-tag"><span class="language-xml">        <span class="hljs-attr">className</span>=<span class="hljs-string">&#123;</span>`<span class="hljs-attr">relative</span> <span class="hljs-attr">cursor-pointer</span> <span class="hljs-attr">bg-gray-300</span> <span class="hljs-attr">rounded-full</span> <span class="hljs-attr">px-3</span> <span class="hljs-attr">py-1</span> <span class="hljs-attr">m-1</span> <span class="hljs-attr">whitespace-nowrap</span> <span class="hljs-attr">text-sm</span> <span class="hljs-attr">font-semibold</span> </span></span><br><span class="hljs-tag"><span class="language-xml">        $&#123;<span class="hljs-attr">toggle</span> &amp;&amp; &quot;<span class="hljs-attr">before:z-40</span> <span class="hljs-attr">before:fixed</span> <span class="hljs-attr">before:block</span> <span class="hljs-attr">before:cursor-default</span> <span class="hljs-attr">before:top-0</span> <span class="hljs-attr">before:left-0</span> <span class="hljs-attr">before:bottom-0</span> <span class="hljs-attr">before:right-0</span>&quot;&#125;`&#125;&gt;</span></span><br><span class="language-xml">        by ME</span><br><span class="language-xml">      <span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&#123;</span>`<span class="hljs-attr">absolute</span> <span class="hljs-attr">z-50</span> $&#123;<span class="hljs-attr">toggle</span> ? &quot;<span class="hljs-attr">block</span>&quot; <span class="hljs-attr">:</span> &quot;<span class="hljs-attr">hidden</span>&quot;&#125;`&#125;&gt;</span></span><br><span class="language-xml">        <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;flex flex-col w-fit py-2 shadow-lg rounded-lg mb-2 bg-gray-100 bg-opacity-95&quot;</span>&gt;</span></span><br><span class="language-xml">        <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;inline-block cursor-pointer px-6 py-2 hover:bg-gray-200 text-sm font-semibold text-green-700&quot;</span></span></span><br><span class="hljs-tag"><span class="language-xml">            <span class="hljs-attr">onClick</span>=<span class="hljs-string">&#123;onToggle&#125;</span>&gt;</span></span><br><span class="language-xml">            邀请</span><br><span class="language-xml">        <span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span></span><br><span class="language-xml">        <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;inline-block cursor-pointer px-6 py-2 hover:bg-gray-200 text-sm font-semibold text-red-500&quot;</span></span></span><br><span class="hljs-tag"><span class="language-xml">            <span class="hljs-attr">onClick</span>=<span class="hljs-string">&#123;onToggle&#125;</span>&gt;</span></span><br><span class="language-xml">            删除</span><br><span class="language-xml">        <span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span></span><br><span class="language-xml">        <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br><span class="language-xml">    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br>  );<br>&#125;<br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title class_">CreatedBy</span>;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>使用 React Hook <code>React.useState(false)</code> 来管理菜单的显示(true)与隐藏(false)</li>
+<li>使用伪元素创建一个覆盖整个页面的区域用来接收隐藏菜单事件 before:z-40 before:fixed before:block before:cursor-default before:top-0 before:left-0 before:bottom-0 before:right-0</li>
+<li>通过修改 div 的 display 属性为 block&#x2F;none(hidden) 来控制上下文菜单的显示 <code>className=&#123;</code>absolute z-50 ${toggle ? “block “ : “hidden”}<code>&#125;</code></li>
+</ul>
+<p align="center">
+<img src="../images/context_menu_show.png" srcset="/img/loading.gif" lazyload style="width:300px">
+</p>
+
+<h4 id="全局上下文菜单"><a href="#全局上下文菜单" class="headerlink" title="全局上下文菜单"></a><strong>全局上下文菜单</strong></h4><p>CartCart 共享购物车在导航栏的中间有一个 Logo 作为全局按钮，导航栏在 Web App 的任意页面都可见，我们需要在不同页面按这个按钮都根据当前页面来显示不同的上下文菜单（如在购物车列表页面出现新建购物画菜单，在商品列表页面出现添加商品菜单），或者直在点击按钮的时候跳转页面。最终效果如下：</p>
+<p align="center">
+<img src="../images/cartcart_carter_hidden.png" srcset="/img/loading.gif" lazyload style="width:300px">
+<img src="../images/cartcart_new_item.png" srcset="/img/loading.gif" lazyload style="width:300px">
+<img src="../images/cartcart_new_cart.png" srcset="/img/loading.gif" lazyload style="width:300px">
+</p>
+
+
+<p>这个功能可以利用 React 的 <a target="_blank" rel="noopener" href="https://reactjs.org/docs/context.html">Context</a> 功能来实现。</p>
+<p>首先定义 Context Provider 即这个全局按钮，我们需要在不同页面感知到这个按钮被点击了，同时我们在不同页面操作完成之后，需要回调告诉 Context Provider。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-keyword">import</span> <span class="hljs-title class_">Image</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;next/image&quot;</span>;<br><span class="hljs-keyword">import</span> <span class="hljs-title class_">React</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;react&quot;</span>;<br><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">Carter</span>(<span class="hljs-params"></span>) &#123;<br>  <span class="hljs-keyword">const</span> &#123; toggle, setToggle &#125; = <span class="hljs-title function_">useCarter</span>();<br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">onClick</span>=<span class="hljs-string">&#123;()</span> =&gt;</span> &#123; setToggle(toggle =&gt; !toggle); &#125;&#125;&gt;</span><br><span class="language-xml">        <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&#123;(toggle</span> ? &quot;<span class="hljs-attr">before:z-40</span> <span class="hljs-attr">before:fixed</span> <span class="hljs-attr">before:block</span> <span class="hljs-attr">before:top-0</span> <span class="hljs-attr">before:left-0</span> <span class="hljs-attr">before:bottom-0</span> <span class="hljs-attr">before:right-0</span> &quot; <span class="hljs-attr">:</span> &quot;&quot;)&#125; /&gt;</span></span><br><span class="language-xml">        <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&#123;</span>&quot;<span class="hljs-attr">cursor-pointer</span> <span class="hljs-attr">w-8</span> <span class="hljs-attr">h-8</span> <span class="hljs-attr">transition-transform</span> &quot; + (<span class="hljs-attr">toggle</span> ? &quot;<span class="hljs-attr">rotate-45</span>&quot; <span class="hljs-attr">:</span> &quot;&quot;)&#125;&gt;</span></span><br><span class="language-xml">          <span class="hljs-tag">&lt;<span class="hljs-name">Image</span> <span class="hljs-attr">width</span>=<span class="hljs-string">&quot;32&quot;</span> <span class="hljs-attr">height</span>=<span class="hljs-string">&quot;32&quot;</span> <span class="hljs-attr">alt</span>=<span class="hljs-string">&quot;CartCart&quot;</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;/cartcart.svg&quot;</span> <span class="hljs-attr">priority</span>=<span class="hljs-string">&#123;true&#125;</span> &gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">Image</span>&gt;</span></span><br><span class="language-xml">        <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br><span class="language-xml">    <span class="hljs-tag">&lt;/&gt;</span></span><br>  );<br>&#125;<br><br><span class="hljs-keyword">const</span> <span class="hljs-title class_">CarterContext</span> = <span class="hljs-title class_">React</span>.<span class="hljs-title function_">createContext</span>(<span class="hljs-literal">null</span>);<br><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">CarterProvider</span>(<span class="hljs-params">props</span>) &#123;<br>  <span class="hljs-keyword">const</span> [toggle, setToggle] = <span class="hljs-title class_">React</span>.<span class="hljs-title function_">useState</span>(<span class="hljs-literal">false</span>);<br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">CarterContext.Provider</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&#123;&#123;</span> <span class="hljs-attr">toggle</span>, <span class="hljs-attr">setToggle</span> &#125;&#125; &#123;<span class="hljs-attr">...props</span>&#125; /&gt;</span></span><br>  );<br>&#125;<br><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">CarterPopup</span>(<span class="hljs-params">&#123; toggle, children &#125;</span>) &#123;<br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&#123;</span>&quot;<span class="hljs-attr">max-w-sm</span> <span class="hljs-attr">fixed</span> <span class="hljs-attr">z-50</span> <span class="hljs-attr">left-1</span>/<span class="hljs-attr">2</span> <span class="hljs-attr">-translate-x-1</span>/<span class="hljs-attr">2</span> <span class="hljs-attr">top-12</span> &quot; + (<span class="hljs-attr">toggle</span> ? &quot;<span class="hljs-attr">block</span>&quot; <span class="hljs-attr">:</span> &quot;<span class="hljs-attr">hidden</span>&quot;)&#125;&gt;</span></span><br><span class="language-xml">      &#123;children&#125;</span><br><span class="language-xml">    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br>  );<br>&#125;<br><br><span class="hljs-keyword">const</span> <span class="hljs-title function_">useCarter</span> = (<span class="hljs-params"></span>) =&gt; <span class="hljs-title class_">React</span>.<span class="hljs-title function_">useContext</span>(<span class="hljs-title class_">CarterContext</span>);<br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title class_">Carter</span>;<br><span class="hljs-keyword">export</span> &#123; <span class="hljs-title class_">CarterProvider</span>, <span class="hljs-title class_">CarterPopup</span>, useCarter &#125;;<br></code></pre></td></tr></table></figure>
+
+<p>将 Context 注入到 <code>_app.js</code> 上下文中，前面提到所有的页面都会通过这个文件的函数渲染。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-keyword">function</span> <span class="hljs-title function_">CartCartApp</span>(<span class="hljs-params">&#123; Component, pageProps &#125;</span>) &#123;<br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;<span class="hljs-name">Head</span>&gt;</span></span><br><span class="language-xml">        <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>CartCart<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;/<span class="hljs-name">Head</span>&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;flex flex-col items-center&quot;</span> &gt;</span></span><br><span class="language-xml">          <span class="hljs-tag">&lt;<span class="hljs-name">CarterProvider</span>&gt;</span></span><br><span class="language-xml">            <span class="hljs-tag">&lt;<span class="hljs-name">NavBar</span> /&gt;</span></span><br><span class="language-xml">            <span class="hljs-tag">&lt;<span class="hljs-name">Component</span> &#123;<span class="hljs-attr">...pageProps</span>&#125; /&gt;</span></span><br><span class="language-xml">          <span class="hljs-tag">&lt;/<span class="hljs-name">CarterProvider</span>&gt;</span></span><br><span class="language-xml">      <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br><span class="language-xml">    <span class="hljs-tag">&lt;/&gt;</span></span><br>  );<br>&#125;<br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title class_">CartCartApp</span>;<br></code></pre></td></tr></table></figure>
+
+<p>在不同页面中通过 useCarter 监听全局按钮的点击事件。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs js"><br><span class="hljs-keyword">const</span> <span class="hljs-title function_">CartPage</span> = (<span class="hljs-params"></span>) =&gt; &#123;<br>  <span class="hljs-keyword">const</span> &#123; toggle, setToggle &#125; = <span class="hljs-title function_">useCarter</span>();<br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;&gt;</span></span><br><span class="language-xml">      &#123;</span><br><span class="language-xml">        toggle &amp;&amp;</span><br><span class="language-xml">        <span class="hljs-tag">&lt;<span class="hljs-name">CarterPopup</span> <span class="hljs-attr">toggle</span>=<span class="hljs-string">&#123;toggle&#125;</span>&gt;</span></span><br><span class="language-xml">          &#123;全局上下文菜单内容&#125;</span><br><span class="language-xml">        <span class="hljs-tag">&lt;/<span class="hljs-name">CarterPopup</span>&gt;</span></span><br><span class="language-xml">      &#125;</span><br><span class="language-xml">    <span class="hljs-tag">&lt;/&gt;</span></span><br>  );<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h4 id="页面延迟更新"><a href="#页面延迟更新" class="headerlink" title="页面延迟更新"></a><strong>页面延迟更新</strong></h4><p>在页面需要从后端动态加载数据进行渲染或定时刷新时，需要用到 <code>React.useEffect()</code> Hook 函数。单纯用 async 函数或 <code>setInterval()</code> 等函数是无法在 React Functional Component 中触发组件更新的。</p>
+<p>如下路由到商品列表页时，调用后台 API 加载商品数据的步骤需要放到钩子函数中，第二个参数是依赖列表，当依赖的对象发生变化(Object Identity)时 React 都会执行传入的第一个函数更新组件。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs js"><span class="hljs-keyword">const</span> <span class="hljs-title function_">CartPage</span> = (<span class="hljs-params"></span>) =&gt; &#123;<br>  <span class="hljs-keyword">const</span> [cart, setCart] = <span class="hljs-title class_">React</span>.<span class="hljs-title function_">useState</span>(<span class="hljs-literal">null</span>);<br>  <span class="hljs-keyword">const</span> router = <span class="hljs-title function_">useRouter</span>();<br>  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> &#123;<br>    <span class="hljs-keyword">if</span> (!router.<span class="hljs-property">isReady</span>) &#123; <span class="hljs-keyword">return</span>; &#125;<br>    server.<span class="hljs-title function_">getCart</span>(router.<span class="hljs-property">query</span>.<span class="hljs-property">cid</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">cart</span> =&gt;</span> <span class="hljs-title function_">setCart</span>(cart));<br>  &#125;, [router]);<br><br><br>  <span class="hljs-keyword">if</span> (!cart) &#123;<br>    <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;w-fit mt-12&quot;</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">Loading</span> <span class="hljs-attr">width</span>=<span class="hljs-string">&#123;64&#125;</span> <span class="hljs-attr">height</span>=<span class="hljs-string">&#123;64&#125;</span> /&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span></span><br><span class="language-xml">      &#123;cart.items?.map(item =&gt; <span class="hljs-tag">&lt;<span class="hljs-name">Item</span> <span class="hljs-attr">key</span>=<span class="hljs-string">&#123;item.id&#125;</span> <span class="hljs-attr">item</span>=<span class="hljs-string">&#123;item&#125;</span> /&gt;</span>)&#125;</span><br><span class="language-xml">    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br>  );<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>或者页面倒计时，在 <code>React.useEffect()</code> 第一个参数的函数中，可以返回一个回调函数，用作 clean up.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs js"><br><span class="hljs-keyword">const</span> <span class="hljs-title function_">Home</span> = (<span class="hljs-params"></span>) =&gt; &#123;<br>  <span class="hljs-keyword">const</span> [countdown, setCountdown] = <span class="hljs-title class_">React</span>.<span class="hljs-title function_">useState</span>(<span class="hljs-number">60</span>);<br><br>  <span class="hljs-title class_">React</span>.<span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> &#123;<br>    <span class="hljs-keyword">let</span> countdownInterval = <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> &#123;<br>      <span class="hljs-keyword">if</span> (countdown &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-title function_">setCountdown</span>(<span class="hljs-function"><span class="hljs-params">countdown</span> =&gt;</span> countdown - <span class="hljs-number">1</span>);<br>      &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-title function_">setCountdown</span>(<span class="hljs-literal">null</span>);<br>      &#125;<br>    &#125;, <span class="hljs-number">1000</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-function">() =&gt;</span> &#123; <span class="hljs-built_in">clearInterval</span>(countdownInterval); &#125;;<br>  &#125;, [countdown]);<br><br>  <span class="hljs-keyword">return</span> (<br>    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span></span><br><span class="language-xml">        &#123;countdown ? countdown + &quot;s&quot; :  &quot;done&quot; &#125;</span><br><span class="language-xml">    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="应用展示"><a href="#应用展示" class="headerlink" title="应用展示"></a><strong>应用展示</strong></h2><p>撑握了上面的基础知识加上一些细节之后，我们就可以做一个 Web 端的共享购物车应用了。</p>
+<p align="center">
+    <img src="../images/cartcart_presentation.jpg" srcset="/img/loading.gif" lazyload>
+</p>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>全干工程师：后端工程师入坑前端总结</div>
+      <div>http://smalnote.github.io/2022/11/17/全干工程师：后端工程师入坑前端总结/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>smalnote</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年11月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/09/24/Kafka%20Reator%20%E6%A8%A1%E5%9E%8B%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" title="Kafka Reator 模型源代码分析">
+                        <span class="hidden-mobile">Kafka Reator 模型源代码分析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
