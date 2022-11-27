@@ -1,0 +1,645 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/favicon.png">
+  <link rel="icon" href="/images/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="smalnote">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="A property of universal computation—Turing completeness—is that a computer program can write a computer program. This is a powerful idea that is not appreciated as often as it might be, even though i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Golang 代码生成实践入门">
+<meta property="og:url" content="http://smalnote.github.io/2022/11/27/Golang%20%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%AE%9E%E8%B7%B5%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="Smalnote">
+<meta property="og:description" content="A property of universal computation—Turing completeness—is that a computer program can write a computer program. This is a powerful idea that is not appreciated as often as it might be, even though i">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-11-27T09:53:41.573Z">
+<meta property="article:modified_time" content="2022-11-27T09:53:41.573Z">
+<meta property="article:author" content="smalnote">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Golang 代码生成实践入门 - Smalnote</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"smalnote.github.io","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Smalnote</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/qq_lion.jpeg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Golang 代码生成实践入门"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-11-27 17:53" pubdate>
+          2022年11月27日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          60 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Golang 代码生成实践入门</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>A property of universal computation—Turing completeness—is that a computer program can write a computer program. This is a powerful idea that is not appreciated as often as it might be, even though it happens frequently. – Rob Pike <em><a target="_blank" rel="noopener" href="https://go.dev/blog/generate">Generating Code</a></em></p>
+</blockquote>
+<p>代码生成是编译器很大的一部份。举例来说，<code>go test</code> 命令就依赖于代码生成来执行测试，首先扫描被测试的包，然后生成一个 Go 应用，包含被测试包及相关脚手架代码，其可以被 <code>go</code> 命令编译运行并输出相应的测试报告。依靠现代计算机强大的性能，看起来复杂的代码生成一般只需要耗费几秒钟的时间。</p>
+<p>代码生成一般用来辅助开发者生成一些结构类似，重复度高的，但又依赖于程序的其它部份的代码。如：Java 中的 Lombok 可以用注解的方式在编译时给类添加 <code>getters/setters</code> 函数，Golang 中的 <code>stringer</code> 可以为枚举类型生成对应的 <code>String()</code> 方法等等，类似的代码生成的应用场景非常广泛，更有依赖 AI 来更智能地生成代码的 <strong>Github Copilot</strong>。</p>
+<p>一方面，人工编写 <code>getters/setters</code> 或 <code>stringer</code> 这类代码只是繁复的体力活，非常无趣；另一方面，这类代码会随着字段变更，枚举类型增加而频繁更新，容易遗漏。因此，交给代码生成器来做这类工作再合适不过了。 Golang 官方和社区提供了诸如 <code>stringer</code>, <code>mockgen</code> 等代码生成工具；但在实践中，我们极有可能需要根据自己的场景来生成代码，了解如何设计实现一个代码生成器就非常有必要了。</p>
+<p>本文通过实际项目中应用到的例子，来探讨一下如何利用 Golang 提供的包，命令等来实现我们需要的代码生成器。</p>
+<h2 id="如何生成测试代码"><a href="#如何生成测试代码" class="headerlink" title="如何生成测试代码"></a><strong>如何生成测试代码</strong></h2><p>Golang 社区有 <strong><a target="_blank" rel="noopener" href="https://github.com/cweill/gotests">cweill&#x2F;gotests</a></strong> 可以生成函数或者方法的单元测试脚手架代码，开发者只需要填充测试用例，稍微修改一下结构定义或校验的代码就可以快速写出高质量的单测了。</p>
+<h3 id="场景"><a href="#场景" class="headerlink" title="场景"></a><strong>场景</strong></h3><p>然而，我们的例子中，需要更进一步，扫描一个包及其子包下面定义的所有导出的同一种类型的变量，并执行变量上的一个方法来检查变量定义的正确性。简化的代码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// file schema.go</span><br><span class="hljs-comment">// Schema 定义校验一个数据结构的规则集。</span><br><span class="hljs-comment">// 如：用户注册表单中用户名必须是字母开头，没有特殊符号等等。</span><br><span class="hljs-keyword">type</span> Schema <span class="hljs-keyword">struct</span> &#123;<br>    Validators []<span class="hljs-type">string</span><br>&#125;<br><br><span class="hljs-comment">// Check 检查 Schema 中的 Validator 配置是否正确。</span><br><span class="hljs-comment">// 如：定义了一个字段必须小最长度是 10, 最大长度是 5，这种配因为任意数据检查都会失败，显然是不合理的。</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(s *Schema)</span></span> Check() <span class="hljs-type">error</span> &#123;<br>    <span class="hljs-comment">/* ... some checks */</span><br>    <span class="hljs-keyword">return</span> errors.New(<span class="hljs-string">&quot;validator xxx invalid&quot;</span>)<br>&#125;<br><br><span class="hljs-comment">// 业务代码</span><br><span class="hljs-comment">// file register.go</span><br><span class="hljs-keyword">var</span> RegisterForm = &amp;Schema&#123;<span class="hljs-comment">/* ... */</span>&#125;<br><br><span class="hljs-comment">// file login.go</span><br><span class="hljs-keyword">var</span> LoginForm = &amp;Schema&#123;<span class="hljs-comment">/* ... */</span>&#125;<br><br><span class="hljs-comment">// 我们需要的测试代码</span><br><span class="hljs-comment">// file schemas_test.go</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">TestingForms</span><span class="hljs-params">(t *testing.T)</span></span> &#123;<br>    <span class="hljs-keyword">for</span> i, f := <span class="hljs-keyword">range</span> []*Schema&#123; RegisterForm, LoginForm &#125; &#123;<br>        t.Run(<span class="hljs-string">&quot;check form &quot;</span> + strings.Itoa(i), <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(t *testing.T)</span></span> &#123;<br>            <span class="hljs-keyword">if</span> err := f.Check(); err != <span class="hljs-literal">nil</span> &#123;<br>                t.Error(err)<br>            &#125;<br>        &#125;)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>针对上面这个场景，手写每个 Schema 变量对应的单测代码，纯粹的体力活，还容易遗漏；另一方面，如果将 <code>Check()</code> 逻辑的执行推迟到业务程序运行时则为时已完，发现问题需要经过代码修改，测试，部署一系列操作来修复。此时，用代码生成器来自动扫描类型为 <code>*Schema</code> 的导出变量并生成相应的 <code>_test.go</code> 单元测试文件，将 Schema 检查集成到开发或 CI&#x2F;CD 环节就十分合理了。接入下介绍一些需要用来的工具。</p>
+<h3 id="x2F-x2F-go-generate-注释"><a href="#x2F-x2F-go-generate-注释" class="headerlink" title="&#x2F;&#x2F;go:generate 注释"></a><strong>&#x2F;&#x2F;go:generate 注释</strong></h3><p>用过 <code>stringer</code> 或 <code>mockgen</code> 的同学肯定知道，可以在源代码中写 <code>//go:generate</code> 注释，配合在命令行中执行 <code>go generate</code> 命令就可以触发代码生成。如：<code>//go:generate stringer -type=Pill</code> 可以用来生成枚举类型的 <code>String()</code> 方法。注释中的 <code>stringer</code> 是一个在 <code>$PATH</code> 中存在的可执行程序，后面的 <code>-type=Pill</code> 是程序的入参。当在源代码所在的目录下执行 <code>go generate .</code> 命令时，<code>go</code> 会扫描当前目录源码中的 <code>//go:generate</code> 注释并逐个执行其中的命令，以此来执行 <code>stringer</code> 程生成代码。</p>
+<h3 id="源代码扫描"><a href="#源代码扫描" class="headerlink" title="源代码扫描"></a><strong>源代码扫描</strong></h3><p>触发了可执行程序后，就需要在程序中扫描源代码，构造 AST；理论上这个程序可以是任何可执行程序或者脚本，只要它能正确解析我们写的 Golang 源代码，让我们找到定义的 <code>*Schema</code> 类型的变量就够了。实际上，Golang 1.5 开始就实现了自举，官方也提供了 <a target="_blank" rel="noopener" href="https://pkg.go.dev/golang.org/x/tools@v0.1.12/go/packages"><code>golang.org/x/tools/go/packages</code></a> 这个工具包，可以用来加载 Golang 源代码，构造 AST.</p>
+<h3 id="text-x2F-template"><a href="#text-x2F-template" class="headerlink" title="text&#x2F;template"></a><strong>text&#x2F;template</strong></h3><p>扫描完代码，我们就需要根据定义的 <code>*Schema</code> 来生成对应的测试代码，在生成的目标代码中，大部分代码是固定的，只有变量定义和变量导入的部分是变化的。因此，我们可以利用 <a target="_blank" rel="noopener" href="https://pkg.go.dev/text/template"><code>text/template</code></a> 文本模板，将变化的部份定义为占位符，在执行模板时传入变量替换占位符生成最终的单元测试代码。</p>
+<h3 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h3><p>利用前面提到的工具，我们基本上就可以写一个 <code>main.go</code> 程序来实现测试代码的生成了，以前文的<strong>场景</strong>为例。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// file main.go</span><br><span class="hljs-keyword">package</span> checker<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-comment">// 其它标准包的导入忽略</span><br>    <span class="hljs-string">&quot;text/template&quot;</span><br>    <span class="hljs-string">&quot;golang.org/x/tools/go/packages&quot;</span><br><br>    <span class="hljs-comment">// for embedding template file</span><br>    _ <span class="hljs-string">&quot;embed&quot;</span><br>)<br><br><span class="hljs-keyword">var</span> _template *template.Template<br><br><span class="hljs-comment">//go:embed checker_test.go.template</span><br><span class="hljs-keyword">var</span> templateFile embed.FS<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">init</span><span class="hljs-params">()</span></span> &#123;<br>    template, _ := template.ParseFS(templateFile, <span class="hljs-string">&quot;checker_test.go.template&quot;</span>)<br>    _template = template<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    formattedSource, err := loadPackageAndGenerateSource()<br>    <span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>        <span class="hljs-keyword">return</span> log.Fatal(err)<br>    &#125;<br>    <span class="hljs-comment">// 将测试代码写到文件或输出到控制台</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">loadPackageAndGenerateSource</span><span class="hljs-params">()</span></span> ([]<span class="hljs-type">byte</span>, <span class="hljs-type">error</span>) &#123;<br>    cfg := &amp;packages.Config&#123; Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo, &#125;<br>    <span class="hljs-comment">// 扫描 &quot;./...&quot; 当前目录和所有子目录下面的包</span><br>    schemaPackages, _ := packages.Load(cfg, <span class="hljs-string">&quot;./...&quot;</span>)<br>    schemas := findAllExportedSchemas(schemaPackages)<br>    <span class="hljs-keyword">var</span> sourceBuffer bytes.Buffer<br>    <span class="hljs-comment">// 执行模板生成代码</span><br>    _ = _template.Execute(&amp;sourceBuffer, schemas); err != <span class="hljs-literal">nil</span> &#123;<br>    <span class="hljs-comment">// 格式化生成的代码</span><br>    <span class="hljs-keyword">return</span> format.Source(sourceBuffer.Bytes())<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">findAllExportedSchemas</span><span class="hljs-params">(packages []*packages.Package)</span></span> []<span class="hljs-type">string</span> &#123;<br>    <span class="hljs-keyword">var</span> schemas []<span class="hljs-type">string</span><br>    <span class="hljs-keyword">for</span> _, pkg := <span class="hljs-keyword">range</span> packages &#123;<br><br>        scope := pkg.Types.Scope()<br>        <span class="hljs-keyword">for</span> _, name := <span class="hljs-keyword">range</span> scope.Names() &#123;<br>            object := scope.Lookup(name)<br>            <span class="hljs-comment">// types.Object 可以是包中声明的 struct, interface, var 等等</span><br>            <span class="hljs-keyword">if</span> !object.Exported() &#123;<br>                <span class="hljs-keyword">continue</span><br>            &#125;<br>            <span class="hljs-comment">// 通过 object.Type().String() 和 reflect.TypeOf(*Schema(nil)) 判断</span><br>            <span class="hljs-comment">// object 是否为 *Schema 类型变量</span><br>            schemas = <span class="hljs-built_in">append</span>(schemas, object.Name())<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> schemas<br>&#125;<br><br><span class="hljs-comment">// 代码模板文件 checker_test.go.template</span><br><span class="hljs-comment">// 其中用 &#123;&#123;&#125;&#125; 来定义占位符，用 &#123;&#123;range&#125;&#125;&#123;&#123;end&#125;&#125; 来迭代，参考：https://pkg.go.dev/text/template</span><br><span class="hljs-comment">// _template.Execute(&amp;sourceBuffer, schemas) 中的第二个参数 schema 变量名数组</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">TestSchemas</span><span class="hljs-params">(t *testing.T)</span></span> &#123;<br>    <span class="hljs-keyword">for</span> i, f := <span class="hljs-keyword">range</span> []*Schema&#123; &#123;&#123;<span class="hljs-keyword">range</span> $schemaVariable := .&#125;&#125;&#123;&#123;$schemaVariable&#125;&#125;,&#123;&#123;end&#125;&#125; &#125; &#123;<br>        t.Run(<span class="hljs-string">&quot;check schema &#123;&#123;$schemaVariable&#125;&#125;&quot;</span>, <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">(t *testing.T)</span></span> &#123;<br>            <span class="hljs-keyword">if</span> err := f.Check(); err != <span class="hljs-literal">nil</span> &#123;<br>                t.Error(err)<br>            &#125;<br>        &#125;)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>关于示例代码</strong>：</p>
+<ul>
+<li>上面的例子做了非常多的简化，包括错误检查，生成的代码中引用 Schema 变量对应的导入，生成代码输出到文件中等等</li>
+<li>采用了 <code>embed</code> 包来加载代码模板（文本文件），这在代码模板比较长和复杂时有用，特别是代码中有 <code>back quote</code> 符号不适合放在  Raw String 中</li>
+<li><code>golang.org/x/tools/go/packages.Load()</code> 加载代码是以包为单位的，而不是文件，Golang 中一个包可以拆成多个文件，Schema 变量定义也可以分散在不同文件</li>
+<li>包的加载会忽略 <code>.</code>, <code>_</code> 开头的文件和 <code>testdata</code> 目录，这与其它 <code>go tool</code> 是一致的，详细的解释可以在 <code>go help packages</code> 命令中查看</li>
+</ul>
+<h2 id="代码生成工具的发布和使用"><a href="#代码生成工具的发布和使用" class="headerlink" title="代码生成工具的发布和使用"></a><strong>代码生成工具的发布和使用</strong></h2><p>我们用 Golang 编写的代码生成工具，本质上是一个可执行程序，最终会交付给开发者使用。开发者通过 <code>//go:generate</code> 注释配合 <code>go generate</code> 命令即可在开发阶段生成代码，也可以方便地集成到 CI&#x2F;CD 环节。</p>
+<h3 id="可执行文件方式"><a href="#可执行文件方式" class="headerlink" title="可执行文件方式"></a><strong>可执行文件方式</strong></h3><p>假设上文实现的工具为 gitwhatever.com&#x2F;tools&#x2F;cmd&#x2F;checker，则用户需要用 <code>go install gitwhatever.com/tools/cmd/checker</code> 命令将 <code>checker</code> 可执行文件安装到 $GOPATH&#x2F;bin 目录下，确保 <code>go generate</code> 命令可以通过 $PATH 找到 <code>checker</code> 并执行代码生成。对于 <code>//go:generate checker</code> 注释，<code>checker</code> 执行时的当前目录就是源代码所在的目录，因此 <code>packages.Load(&quot;./...&quot;)</code> 就会加载源代码目录及其所有子目录的包。而如果直接在命令行运行 <code>checker</code> 命令的话，就需要先切换当前目录了。</p>
+<h3 id="go-run-方式"><a href="#go-run-方式" class="headerlink" title="go run 方式"></a><strong>go run 方式</strong></h3><p>可执行文件的方式依赖于用户主动安装和更新工具到最新版本。前面提到 <code>//go:generate $&#123;cmd&#125;</code> 注释的作用只是告诉 <code>go generate</code> 执行 <code>$&#123;cmd&#125;</code> 命令，这个命令可以是 <code>checker</code>，当然也可以是 go run gitwhatever.com&#x2F;tools&#x2F;cmd&#x2F;checker，因此注释为 <code>//go:generate go run gitwhatever.com/tools/cmd/checker</code> 可以一举解决需要安装和更新命令的问题，特别是当代码生成工具是跟依赖的代码(<code>Schema</code>定义)一起发布时，可以确保版本是兼容的。</p>
+<h2 id="代码静态信息和动态信息"><a href="#代码静态信息和动态信息" class="headerlink" title="代码静态信息和动态信息"></a><strong>代码静态信息和动态信息</strong></h2><p>利用 <code>golang.org/x/tools/go/packages</code> 这样的工具，我们可以方便地加载分析源代码，构建 AST，获取我们需要的源代码中所有的静态信息，如包名，变量名，函数名，甚到注释信息等；但对于代码运行时的动态信息，这类工具就无能为力了。为什么会用到代码运行时的信息呢？举一个实践中遇到的场景：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> Schema <span class="hljs-keyword">struct</span> &#123;<br>    Unions     []*Schema<br>    Validators []<span class="hljs-type">string</span><br>&#125;<br><br><span class="hljs-comment">// foo.go</span><br><span class="hljs-keyword">var</span> Foo = &amp;Schema &#123;<br>    Unions: []*Schema&#123;<br>        bar.Bar, <br>        <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> *Schema &#123; <br>            <span class="hljs-keyword">if</span> someCondition &#123;<br>                <span class="hljs-keyword">return</span> fuzz.Fuzz<br>            &#125;<br>            <span class="hljs-keyword">return</span> whateverSchema<br>        &#125;(),<br>    &#125;<br>    Validators: []<span class="hljs-type">string</span>&#123;<span class="hljs-comment">/*...*/</span>&#125;<br>&#125;<br><br><span class="hljs-comment">// bar.go</span><br><span class="hljs-keyword">var</span> Bar = &amp;Schema &#123;<br>    Validators: []<span class="hljs-type">string</span>&#123;<span class="hljs-comment">/*...*/</span>&#125;<br>&#125;<br><br><span class="hljs-comment">// fuzz.go</span><br><span class="hljs-keyword">var</span> Fuzz = &amp;Schema &#123;<br>    Validators: []<span class="hljs-type">string</span>&#123;<span class="hljs-comment">/*...*/</span>&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>对于上面的 Schema <code>Foo</code> 其不仅包含了自己的 Validators 还包含了动态地从 <code>Bar</code>, <code>Fuzz</code> 合并过来的 Validators，对于 <code>Bar</code> 这个简单的变量引用，可能可以通过递归的处理来解决，但是对于 <code>Fuzz</code> 的引用，是通过运行一段逻辑来返回的，要想通过静态的代码分析来获取 <code>Foo</code> 完整的 Validator 中比较困难了。</p>
+<p>然而，如果将 <code>Foo</code> 加载到运行时，那 <code>Foo</code> 的定义自然而然就得到了。这个场景就描述了，我们在代码生成时，可能既需要代码的静态信息和代码运行时的动态信息。</p>
+<h3 id="解决思路"><a href="#解决思路" class="headerlink" title="解决思路"></a>解决思路</h3><p>这种既要又要的场景，我们需要在生成的代码的思路上做一点改变。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">原来的方式：<br>foo.go/bar.go/fuzz.go -&gt; generator(eg: checker) -&gt; generated_code.go<br><br>改变后的方式：<br>foo.go/bar.go/fuzz.go -&gt; generator(eg: checker) -&gt; (intermediate generator)temp/main.go -&gt;  generated_code.go<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，改变后的方式，在生成器 <code>generator</code> 和目标代码 <code>generated_code.go</code> 之间增加了一个中间的生成器 <code>intermediate generator</code>，实际上也是一个可以通过 <code>go run temp/main.go</code> 执行的程序，这个改变使我们有机会在其中导入 <code>Foo</code> 变量，获取其运行时的信息，再加上前面的 <code>generator</code> 将静态信息通过模板替换等方式注入到 <code>temp/main.go</code> 就可以实现了。再通过一些后置的步骤清理掉中间的生成器代码即可，具体代码就不再赘述。</p>
+<p>至此，我们对于如何在 Golang 中实现一个代码生器做了简单的探讨，如有错漏，祈为指正 ^_^</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Golang 代码生成实践入门</div>
+      <div>http://smalnote.github.io/2022/11/27/Golang 代码生成实践入门/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>smalnote</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年11月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/11/27/Kafka%20Reator%20%E6%A8%A1%E5%9E%8B%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" title="Kafka Reator 模型源代码分析">
+                        <span class="hidden-mobile">Kafka Reator 模型源代码分析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
