@@ -1,5 +1,5 @@
 ---
-title: Golang 代码生成实践入门
+title: 如何实现一个 Golang 代码生成器
 ---
 
 > A property of universal computation—Turing completeness—is that a computer program can write a computer program. This is a powerful idea that is not appreciated as often as it might be, even though it happens frequently. -- Rob Pike *[Generating Code](https://go.dev/blog/generate)*
@@ -46,7 +46,7 @@ var LoginForm = &Schema{/* ... */}
 // file schemas_test.go
 func TestingForms(t *testing.T) {
     for i, f := range []*Schema{ RegisterForm, LoginForm } {
-        t.Run("check form " + strings.Itoa(i), func(t *testing.T) {
+        t.Run("check form " + strconv.Itoa(i), func(t *testing.T) {
             if err := f.Check(); err != nil {
                 t.Error(err)
             }
@@ -119,7 +119,6 @@ func loadPackageAndGenerateSource() ([]byte, error) {
 func findAllExportedSchemas(packages []*packages.Package) []string {
     var schemas []string
     for _, pkg := range packages {
-
         scope := pkg.Types.Scope()
         for _, name := range scope.Names() {
             object := scope.Lookup(name)
@@ -132,14 +131,12 @@ func findAllExportedSchemas(packages []*packages.Package) []string {
             schemas = append(schemas, object.Name())
         }
     }
-
     return schemas
 }
 
 // 代码模板文件 checker_test.go.template
 // 其中用 {{}} 来定义占位符，用 {{range}}{{end}} 来迭代，参考：https://pkg.go.dev/text/template
 // _template.Execute(&sourceBuffer, schemas) 中的第二个参数 schema 变量名数组
-
 func TestSchemas(t *testing.T) {
     for i, f := range []*Schema{ {{range $schemaVariable := .}}{{$schemaVariable}},{{end}} } {
         t.Run("check schema {{$schemaVariable}}", func(t *testing.T) {
