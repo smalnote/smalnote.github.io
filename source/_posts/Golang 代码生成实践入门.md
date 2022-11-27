@@ -224,3 +224,8 @@ foo.go/bar.go/fuzz.go -> generator(eg: checker) -> (intermediate generator)temp/
 可以看到，改变后的方式，在生成器 `generator` 和目标代码 `generated_code.go` 之间增加了一个中间的生成器 `intermediate generator`，实际上也是一个可以通过 `go run temp/main.go` 执行的程序，这个改变使我们有机会在其中导入 `Foo` 变量，获取其运行时的信息，再加上前面的 `generator` 将静态信息通过模板替换等方式注入到 `temp/main.go` 就可以实现了。再通过一些后置的步骤清理掉中间的生成器代码即可，具体代码就不再赘述。
 
 至此，我们对于如何在 Golang 中实现一个代码生器做了简单的探讨，如有错漏，祈为指正 ^_^
+
+参考文档：
+
+- [Generating code](https://go.dev/blog/generate)
+- [A comprehensive guide to go generate](https://eli.thegreenplace.net/2021/a-comprehensive-guide-to-go-generate/)
