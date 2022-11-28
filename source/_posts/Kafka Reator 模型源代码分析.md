@@ -1,5 +1,6 @@
 ---
 title: Kafka Reator 模型源代码分析
+date: 2022-09-25 23:00:00
 ---
 
 Kafka 服务端 BrokerServer 的请求处理模型为主从 Reactor 多线程模型，本文以 [v3.3](https://github.com/apache/kafka/tree/3.3) 具体分析一下 kafka-core 的 Scala 源码如何实现这个模型，以应对海量的并发请求。

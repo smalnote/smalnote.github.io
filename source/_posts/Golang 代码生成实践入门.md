@@ -1,5 +1,6 @@
 ---
 title: 如何实现一个 Golang 代码生成器
+date: 2022-11-27 18:00:00
 ---
 
 > A property of universal computation—Turing completeness—is that a computer program can write a computer program. This is a powerful idea that is not appreciated as often as it might be, even though it happens frequently. -- Rob Pike *[Generating Code](https://go.dev/blog/generate)*
