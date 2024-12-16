@@ -1,4 +1,7 @@
-# 一段简短的脚本代码 Lint PATH 变量
+---
+title: 一段简短的脚本代码 Lint PATH 变量
+date: 2024-12-16 15:51:00
+---
 
 在不同开发环境不同账户下，需要往 PATH 变量中加入不同的文件夹，同时为了集中管理，
 通常我会把 `.bashrc`, `.zshrc` 等 dotfiles 放到 Github 上，这就导致一个 rc 文件
