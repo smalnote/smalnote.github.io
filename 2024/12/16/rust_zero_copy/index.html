@@ -1,0 +1,840 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/favicon.png">
+  <link rel="icon" href="/images/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="smalnote">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="简介 本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux&#x2F;C API 做对比，主要场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。  运行环境 CPU: E5-2680v4 Mem: 48GB OS: AlmaLinux 9 Host: KVM  总结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rust 零拷贝测试及代码设计">
+<meta property="og:url" content="http://smalnote.github.io/2024/12/16/rust_zero_copy/index.html">
+<meta property="og:site_name" content="Smalnote">
+<meta property="og:description" content="简介 本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux&#x2F;C API 做对比，主要场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。  运行环境 CPU: E5-2680v4 Mem: 48GB OS: AlmaLinux 9 Host: KVM  总结">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-12-16T07:57:00.000Z">
+<meta property="article:modified_time" content="2024-12-16T08:08:08.603Z">
+<meta property="article:author" content="smalnote">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Rust 零拷贝测试及代码设计 - Smalnote</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"smalnote.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Smalnote</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/qq_lion.jpeg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Rust 零拷贝测试及代码设计"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-12-16 15:57" pubdate>
+          2024年12月16日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          78 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Rust 零拷贝测试及代码设计</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
+<p>本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux&#x2F;C API 做对比，主要<br>场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单<br>读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。</p>
+</blockquote>
+<h2 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h2><ul>
+<li>CPU: E5-2680v4</li>
+<li>Mem: 48GB</li>
+<li>OS: AlmaLinux 9</li>
+<li>Host: KVM</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>零拷贝 API 对于<strong>时间复杂度</strong>的降低绝对值上并没有太大效果，原理上减少的时间消耗来自于减少在<br>Linux 用户态和内核态之间进行上下文切换的次数和在用户态及内核态之间进行的内存拷贝，这部分时间相<br>对于通过网络伟输数据消耗的时间小了一个量级。</p>
+<p>在原理上，零拷贝相对于普通的 Read&#x2F;Write Loop 减少了内存缓存空间使用和内存拷贝次数，从 CPU 运<br>行时间占用看，提升理论上应该比较明显，可以**<em>显著降低 CPU 占用率</em>**；不需要内存缓存空间在<br>**<em>高并发场景下也可以减少内存占用率</em>**。</p>
+<h2 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h2><p><strong>Unix Domain Socket Server</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># Use netcat to listen unix domain socket and drop file to /dev/null</span><br>nc -lU /tmp/zero_copy.sock &gt;/dev/null &amp;&amp; <span class="hljs-built_in">rm</span> /tmp/zero_copy.sock<br></code></pre></td></tr></table></figure>
+
+<p><strong>Copy 1GB file from SSD to local Unix domain socket</strong></p>
+<ul>
+<li>Scenario: Copy 1GB file from SSD to local Unix domain socket</li>
+<li>File size: 1GB</li>
+<li>Unix Domain Socket Server: nc -lU &#x2F;tmp&#x2F;zero_copy.sock &gt;&#x2F;dev&#x2F;null</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Time</th>
+<th>Diff</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C read&#x2F;send with buffer(4KB)</td>
+<td>907ms</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>C read&#x2F;send with buffer(8KB)</td>
+<td>598ms</td>
+<td>65.9%</td>
+</tr>
+<tr>
+<td>C read&#x2F;send with buffer(16KB)</td>
+<td>423ms</td>
+<td>46.6%</td>
+</tr>
+<tr>
+<td>C read&#x2F;send with buffer(32KB)</td>
+<td>354ms</td>
+<td>39.0%</td>
+</tr>
+<tr>
+<td>C mmap&#x2F;send</td>
+<td>266ms</td>
+<td>29.3%</td>
+</tr>
+<tr>
+<td>C sendfile</td>
+<td>131ms</td>
+<td>14.4%</td>
+</tr>
+<tr>
+<td>C splice&#x2F;pipe</td>
+<td>158ms</td>
+<td>17.4%</td>
+</tr>
+<tr>
+<td>Rust read&amp;write with buffer(4KB)</td>
+<td>915ms</td>
+<td>100.1%</td>
+</tr>
+<tr>
+<td>Rust std::io::copy</td>
+<td>577ms</td>
+<td>63.6%</td>
+</tr>
+<tr>
+<td>Rust libc::sendfile64</td>
+<td>545ms</td>
+<td>60.1%</td>
+</tr>
+<tr>
+<td>Rust nix::sys::sendfile::sendfile64</td>
+<td>575ms</td>
+<td>63.4%</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>[!NOTE]<br>API splice&#x2F;pipe use a pipe to connect filefd and sockfd, according to <code>man 2 spclie</code>,<br>the splice function requires one of file descriptor to be pipe, result in:<br>splice(filefd, pipefd[1]) and splice(pipefd[1], sockfd).</p>
+</blockquote>
+<p><strong>Copy 8GB file from tmpfs to local Unix domain socket</strong></p>
+<ul>
+<li>Scenario: Copy 8GB file from tmpfs to local Unix domain socket</li>
+<li>File size: 8GB</li>
+<li>Unix Domain Socket Server: nc -lU &#x2F;tmp&#x2F;zero_copy.sock &gt;&#x2F;dev&#x2F;null</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Time</th>
+<th>Diff</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Rust read&amp;write with buffer(4KB)</td>
+<td>7432ms</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Rust read&amp;write with buffer(8KB)</td>
+<td>4688ms</td>
+<td>63.1%</td>
+</tr>
+<tr>
+<td>Rust std::io::copy</td>
+<td>4654ms</td>
+<td>62.6%</td>
+</tr>
+<tr>
+<td>Rust libc::sendfile64</td>
+<td>4059ms</td>
+<td>54.6%</td>
+</tr>
+<tr>
+<td>Rust nix::sys::sendfile::sendfile64</td>
+<td>3937ms</td>
+<td>53.0%</td>
+</tr>
+</tbody></table>
+<p><strong>Copy 20GB file from tmpfs to local Unix domain socket</strong></p>
+<ul>
+<li>Scenario: Copy 20GB file from tmpfs to local Unix domain socket</li>
+<li>File size: 20GB</li>
+<li>Unix Domain Socket Server: nc -lU &#x2F;tmp&#x2F;zero_copy.sock &gt;&#x2F;dev&#x2F;null</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Time</th>
+<th>Diff</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Rust read&amp;write with buffer(4K)B</td>
+<td>18336ms</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Rust std::io::copy</td>
+<td>11334ms</td>
+<td>61.8%</td>
+</tr>
+<tr>
+<td>Rust libc::sendfile64</td>
+<td>10091ms</td>
+<td>55.0%</td>
+</tr>
+<tr>
+<td>Rust nix::sys::sendfile::sendfile64</td>
+<td>10061ms</td>
+<td>54.8%</td>
+</tr>
+</tbody></table>
+<h2 id="Rust-Zero-Copy-Source-Code"><a href="#Rust-Zero-Copy-Source-Code" class="headerlink" title="Rust Zero-Copy Source Code"></a>Rust Zero-Copy <a href="(https://github.com/rust-lang/rust/blob/8e37e151835d96d6a7415e93e6876561485a3354/library/std/src/sys/pal/unix/kernel_copy.rs)">Source Code</a></h2><h3 id="Copy-Disk-file-to-Unix-Domain-Socket"><a href="#Copy-Disk-file-to-Unix-Domain-Socket" class="headerlink" title="Copy Disk file to Unix Domain Socket"></a>Copy Disk file to Unix Domain Socket</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-keyword">use</span> std::&#123;<br>    env,<br>    fs::File,<br>    io::&#123;<span class="hljs-keyword">self</span>, <span class="hljs-type">Result</span>&#125;,<br>    os::unix::net::UnixStream,<br>    time::Instant,<br>&#125;;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;()&gt; &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">args</span>: <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">String</span>&gt; = env::<span class="hljs-title function_ invoke__">args</span>().<span class="hljs-title function_ invoke__">collect</span>();<br>    <span class="hljs-keyword">if</span> args.<span class="hljs-title function_ invoke__">len</span>() != <span class="hljs-number">3</span> &#123;<br>        eprintln!(<span class="hljs-string">&quot;Usage: &#123;&#125; &lt;file_path&gt; &lt;socket_path&gt;&quot;</span>, args[<span class="hljs-number">0</span>]);<br>        std::process::<span class="hljs-title function_ invoke__">exit</span>(<span class="hljs-number">1</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">file_path</span> = &amp;args[<span class="hljs-number">1</span>];<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">socket_path</span> = &amp;args[<span class="hljs-number">2</span>];<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">now</span> = Instant::<span class="hljs-title function_ invoke__">now</span>();<br>    <span class="hljs-title function_ invoke__">copy_file_to_unix_domain_socket</span>(file_path, socket_path)?;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">elapsed</span> = now.<span class="hljs-title function_ invoke__">elapsed</span>();<br>    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;***Metrics: time elapsed: &#123;&#125;ns&quot;</span>, elapsed.<span class="hljs-title function_ invoke__">as_nanos</span>());<br>    <span class="hljs-title function_ invoke__">Ok</span>(())<br>&#125;<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">copy_file_to_unix_domain_socket</span>&lt;<span class="hljs-symbol">&#x27;a</span>&gt;(file_path: &amp;<span class="hljs-symbol">&#x27;a</span> <span class="hljs-type">str</span>, socket_path: &amp;<span class="hljs-symbol">&#x27;a</span> <span class="hljs-type">str</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;()&gt; &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">file</span> = File::<span class="hljs-title function_ invoke__">open</span>(file_path)?;<br>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">socket</span> = UnixStream::<span class="hljs-title function_ invoke__">connect</span>(socket_path)?;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">copied_len</span> = io::<span class="hljs-title function_ invoke__">copy</span>(&amp;<span class="hljs-keyword">mut</span> file, &amp;<span class="hljs-keyword">mut</span> socket)?;<br>    <span class="hljs-built_in">debug_assert_eq!</span>(copied_len, file.<span class="hljs-title function_ invoke__">metadata</span>().<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">len</span>());<br>    <span class="hljs-title function_ invoke__">Ok</span>(())<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="分析：从-Disk-File-到-Socket-的拷贝并没有走零拷贝-API"><a href="#分析：从-Disk-File-到-Socket-的拷贝并没有走零拷贝-API" class="headerlink" title="分析：从 Disk File 到 Socket 的拷贝并没有走零拷贝 API"></a>分析：从 Disk File 到 Socket 的拷贝并没有走零拷贝 API</h3><p>从源代码看，对于 input 到 output 的拷贝，使用到零拷贝的情况。</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Output</th>
+<th>Zero-copy API</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>File(len &gt; 0)</td>
+<td>File</td>
+<td>copy_file_range</td>
+</tr>
+<tr>
+<td>Block Device</td>
+<td>File</td>
+<td>sendfile</td>
+</tr>
+<tr>
+<td>Pipe</td>
+<td>File&#x2F;Pipe&#x2F;Socket</td>
+<td>splice</td>
+</tr>
+<tr>
+<td>Socket&#x2F;Pipe</td>
+<td>Pipe</td>
+<td>splice</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>[!NOTE]<br>由于在执行拷贝时，是按顺序尝试 copy_file_range, sendfile, splice，尝试过程可能会改变文件<br>描述符，因此对 sendfile, splice 设置了 safe_kernel_copy 检查，要求 output 是 Pipe&#x2F;Socket,<br>或 input 是 File，但是 sendfile 要求 output 是 File，导到 File -&gt; Pipe, File -&gt; Socket<br>不能用到 sendfile。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>｜ Zero-copy API</th>
+<th>Input Constraints</th>
+<th>Output constraints</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>copy_file_range</td>
+<td>File(len &gt; 0)</td>
+<td>File</td>
+</tr>
+<tr>
+<td>sendfile</td>
+<td>File(len &gt; 0) or Block Device</td>
+<td>File</td>
+</tr>
+<tr>
+<td>splice</td>
+<td>Pipe</td>
+<td>*</td>
+</tr>
+<tr>
+<td>splice</td>
+<td>Socket&#x2F;Pipe</td>
+<td>Pipe</td>
+</tr>
+</tbody></table>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// kernel_copy.rs</span><br><br><span class="hljs-comment">// 判断是否可以用 copy_file_range，输入是文件且长度大于0，输出也是文件</span><br><span class="hljs-keyword">if</span> input_meta.<span class="hljs-title function_ invoke__">copy_file_range_candidate</span>(FdHandle::Input)<br>    &amp;&amp; output_meta.<span class="hljs-title function_ invoke__">copy_file_range_candidate</span>(FdHandle::Output)<br><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">copy_file_range_candidate</span>(&amp;<span class="hljs-keyword">self</span>, f: FdHandle) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">bool</span> &#123;<br>    <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span> &#123;<br>        <span class="hljs-comment">// copy_file_range will fail on empty procfs files. `read` can determine whether EOF has been reached</span><br>        <span class="hljs-comment">// without extra cost and skip the write, thus there is no benefit in attempting copy_file_range</span><br>        FdMeta::<span class="hljs-title function_ invoke__">Metadata</span>(meta) <span class="hljs-keyword">if</span> f == FdHandle::Input &amp;&amp; meta.<span class="hljs-title function_ invoke__">is_file</span>() &amp;&amp; meta.<span class="hljs-title function_ invoke__">len</span>() &gt; <span class="hljs-number">0</span> =&gt; &#123;<br>            <span class="hljs-literal">true</span><br>        &#125;<br>        FdMeta::<span class="hljs-title function_ invoke__">Metadata</span>(meta) <span class="hljs-keyword">if</span> f == FdHandle::Output &amp;&amp; meta.<span class="hljs-title function_ invoke__">is_file</span>() =&gt; <span class="hljs-literal">true</span>,<br>        _ =&gt; <span class="hljs-literal">false</span>,<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 判断是否可以用 sendfile,</span><br><span class="hljs-comment">// potential_sendfile_source 需要 src 是文件或文件类型是 block_device</span><br><span class="hljs-comment">// Block Device: HDD, SDD, etc; e.g.: /dev/sda (stat /dev/sda Access mode start with b)</span><br><span class="hljs-comment">// safe_kernel_copy 需要 src 是 Socket/Pipe/FIFO，或者 dst 是 File</span><br><span class="hljs-comment">// 可以看到 potential_sendfile_source 和 safe_kernel_copy 对于 src 的要求是冲突的，</span><br><span class="hljs-comment">// 实际上不可能用到 sendfile</span><br><span class="hljs-keyword">if</span> input_meta.<span class="hljs-title function_ invoke__">potential_sendfile_source</span>() &amp;&amp; <span class="hljs-title function_ invoke__">safe_kernel_copy</span>(&amp;input_meta, &amp;output_meta)<br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">potential_sendfile_source</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">bool</span> &#123;<br>    <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span> &#123;<br>        <span class="hljs-comment">// procfs erroneously shows 0 length on non-empty readable files.</span><br>        <span class="hljs-comment">// and if a file is truly empty then a `read` syscall will determine that and skip the write syscall</span><br>        <span class="hljs-comment">// thus there would be benefit from attempting sendfile</span><br>        FdMeta::<span class="hljs-title function_ invoke__">Metadata</span>(meta)<br>            <span class="hljs-keyword">if</span> meta.<span class="hljs-title function_ invoke__">file_type</span>().<span class="hljs-title function_ invoke__">is_file</span>() &amp;&amp; meta.<span class="hljs-title function_ invoke__">len</span>() &gt; <span class="hljs-number">0</span><br>                || meta.<span class="hljs-title function_ invoke__">file_type</span>().<span class="hljs-title function_ invoke__">is_block_device</span>() =&gt;<br>        &#123;<br>            <span class="hljs-literal">true</span><br>        &#125;<br>        _ =&gt; <span class="hljs-literal">false</span>,<br>    &#125;<br>&#125;<br><span class="hljs-comment">/// Returns true either if changes made to the source after a sendfile/splice call won&#x27;t become</span><br><span class="hljs-comment">/// visible in the sink or the source has explicitly opted into such behavior (e.g. by splicing</span><br><span class="hljs-comment">/// a file into a pipe, the pipe being the source in this case).</span><br><span class="hljs-comment">///</span><br><span class="hljs-comment">/// This will prevent File -&gt; Pipe and File -&gt; Socket splicing/sendfile optimizations to uphold</span><br><span class="hljs-comment">/// the Read/Write API semantics of io::copy.</span><br><span class="hljs-comment">///</span><br><span class="hljs-comment">/// Note: This is not 100% airtight, the caller can use the RawFd conversion methods to turn a</span><br><span class="hljs-comment">/// regular file into a TcpSocket which will be treated as a socket here without checking.</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">safe_kernel_copy</span>(source: &amp;FdMeta, sink: &amp;FdMeta) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">bool</span> &#123;<br>    <span class="hljs-title function_ invoke__">match</span> (source, sink) &#123;<br>        <span class="hljs-comment">// Data arriving from a socket is safe because the sender can&#x27;t modify the socket buffer.</span><br>        <span class="hljs-comment">// Data arriving from a pipe is safe(-ish) because either the sender *copied*</span><br>        <span class="hljs-comment">// the bytes into the pipe OR explicitly performed an operation that enables zero-copy,</span><br>        <span class="hljs-comment">// thus promising not to modify the data later.</span><br>        (FdMeta::Socket, _) =&gt; <span class="hljs-literal">true</span>,<br>        (FdMeta::Pipe, _) =&gt; <span class="hljs-literal">true</span>,<br>        (FdMeta::<span class="hljs-title function_ invoke__">Metadata</span>(meta), _)<br>            <span class="hljs-keyword">if</span> meta.<span class="hljs-title function_ invoke__">file_type</span>().<span class="hljs-title function_ invoke__">is_fifo</span>() || meta.<span class="hljs-title function_ invoke__">file_type</span>().<span class="hljs-title function_ invoke__">is_socket</span>() =&gt;<br>        &#123;<br>            <span class="hljs-literal">true</span><br>        &#125;<br>        <span class="hljs-comment">// Data going into non-pipes/non-sockets is safe because the &quot;later changes may become visible&quot; issue</span><br>        <span class="hljs-comment">// only happens for pages sitting in send buffers or pipes.</span><br>        (_, FdMeta::<span class="hljs-title function_ invoke__">Metadata</span>(meta))<br>            <span class="hljs-keyword">if</span> !meta.<span class="hljs-title function_ invoke__">file_type</span>().<span class="hljs-title function_ invoke__">is_fifo</span>() &amp;&amp; !meta.<span class="hljs-title function_ invoke__">file_type</span>().<span class="hljs-title function_ invoke__">is_socket</span>() =&gt;<br>        &#123;<br>            <span class="hljs-literal">true</span><br>        &#125;<br>        _ =&gt; <span class="hljs-literal">false</span>,<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 判断是否可以用 splice</span><br><span class="hljs-comment">// src 和 dst 有一个是 pipe</span><br><span class="hljs-comment">// safe_kernel_copy 需要 src 是 Socket/Pipe/FIFO，或者 dst 不是 FIFO 或 不是 Socket</span><br><span class="hljs-title function_ invoke__">if</span> (input_meta.<span class="hljs-title function_ invoke__">maybe_fifo</span>() || output_meta.<span class="hljs-title function_ invoke__">maybe_fifo</span>())<br>    &amp;&amp; <span class="hljs-title function_ invoke__">safe_kernel_copy</span>(&amp;input_meta, &amp;output_meta)<br></code></pre></td></tr></table></figure>
+
+<h2 id="std-io-copy-API-设计"><a href="#std-io-copy-API-设计" class="headerlink" title="std::io::copy API 设计"></a>std::io::copy API 设计</h2><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><code class="hljs rust"><span class="hljs-comment">// std::io::copy 函数定义</span><br><span class="hljs-comment">// 只要实现了 Read trait 的 reader 和实现 Write trait 的 writer 即可进行 copy</span><br><span class="hljs-comment">// 最基本的方法就是定义一个缓冲区，循环从 reader 读到缓冲区，再从缓冲区写到 writer</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">copy</span>&lt;R: Read + ?<span class="hljs-built_in">Sized</span>, W: Write + ?<span class="hljs-built_in">Sized</span>&gt;(reader: &amp;<span class="hljs-keyword">mut</span> R, writer: &amp;<span class="hljs-keyword">mut</span> W) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">u64</span>&gt;;<br><br><span class="hljs-comment">// 那么 copy 函数的实现又是根据 reader/writer 的类型进行优化调用不同的 zero-copy API 的呢？</span><br><span class="hljs-comment">// 需要用到 super trait 对特定 reader / writer 扩展 Read / Write trait</span><br><span class="hljs-comment">// copy 调用 linux 平台的实现</span><br><span class="hljs-comment">// sys::kernel_copy::copy_spec(reader, writer)</span><br><span class="hljs-keyword">fn</span> <span class="hljs-title function_">copy_spec</span>&lt;R: Read + ?<span class="hljs-built_in">Sized</span>, W: Write + ?<span class="hljs-built_in">Sized</span>&gt;(read: &amp;<span class="hljs-keyword">mut</span> R, write: &amp;<span class="hljs-keyword">mut</span> W) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">u64</span>&gt; &#123;<br>    <span class="hljs-keyword">let</span> <span class="hljs-variable">copier</span> = Copier &#123; read, write &#125;;<br>    SpecCopy::<span class="hljs-title function_ invoke__">copy</span>(copier)<br>&#125;<br><br><span class="hljs-comment">// copy_spec 定义了 SpecCopy trait 和 Copier struct</span><br><span class="hljs-keyword">trait</span> <span class="hljs-title class_">SpecCopy</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">copy</span>(<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">u64</span>&gt;;<br>&#125;<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Copier</span>&lt;<span class="hljs-symbol">&#x27;a</span>, <span class="hljs-symbol">&#x27;b</span>, R: Read + ?<span class="hljs-built_in">Sized</span>, W: Write + ?<span class="hljs-built_in">Sized</span>&gt; &#123;<br>    read: &amp;<span class="hljs-symbol">&#x27;a</span> <span class="hljs-keyword">mut</span> R,<br>    write: &amp;<span class="hljs-symbol">&#x27;b</span> <span class="hljs-keyword">mut</span> W,<br>&#125;<br><br><span class="hljs-comment">// 调用 SpecCopy::copy() 会根据 Copier 中的 read, write 类型生成不同的代码实现</span><br><br><span class="hljs-comment">// 普通的循环 read/write 实现，这个实现只需要 Read / Write trait</span><br><span class="hljs-keyword">impl</span>&lt;R: Read + ?<span class="hljs-built_in">Sized</span>, W: Write + ?<span class="hljs-built_in">Sized</span>&gt; SpecCopy <span class="hljs-keyword">for</span> <span class="hljs-title class_">Copier</span>&lt;<span class="hljs-symbol">&#x27;_</span>, <span class="hljs-symbol">&#x27;_</span>, R, W&gt; &#123;<br>    default <span class="hljs-keyword">fn</span> <span class="hljs-title function_">copy</span>(<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">u64</span>&gt; &#123;<br>        <span class="hljs-title function_ invoke__">generic_copy</span>(<span class="hljs-keyword">self</span>.read, <span class="hljs-keyword">self</span>.write)<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 可以进行 zero-copy 优化的 CopyRead / CopyWrite trait 实现</span><br><span class="hljs-keyword">impl</span>&lt;R: CopyRead, W: CopyWrite&gt; SpecCopy <span class="hljs-keyword">for</span> <span class="hljs-title class_">Copier</span>&lt;<span class="hljs-symbol">&#x27;_</span>, <span class="hljs-symbol">&#x27;_</span>, R, W&gt; &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">copy</span>(<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;<span class="hljs-type">u64</span>&gt; &#123;<br>        <span class="hljs-comment">// copy_file_range, sendfile, splice ...</span><br>    &#125;<br>&#125;<br><span class="hljs-keyword">trait</span> <span class="hljs-title class_">CopyRead</span>: Read &#123;<br>    <span class="hljs-comment">/// Extracts the file descriptor and hints/metadata, delegating through wrappers if necessary.</span><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">properties</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> CopyParams;<br>&#125;<br><span class="hljs-keyword">trait</span> <span class="hljs-title class_">CopyWrite</span>: Write &#123;<br>    <span class="hljs-comment">/// Extracts the file descriptor and hints/metadata, delegating through wrappers if necessary.</span><br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">properties</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> CopyParams;<br>&#125;<br><br><span class="hljs-comment">// 这样只需要对可以进行 zero copy 的 reader / writer 类型分别实现 CopyRead, CopyWrite trait</span><br><span class="hljs-comment">// 则编译器生成 SpecCopy::copy() 调用的代码时，就会匹配到 zero-copy 优化的实现</span><br><span class="hljs-comment">// std::sys::kernel_copy 模块中，对 fs::File, std::net::tcp::TcpStream，</span><br><span class="hljs-comment">// std::os::unix::net::stream::UnixStream 等标准库中的类型都实现了 CopyRead, CopyWrite trait</span><br><span class="hljs-comment">// 如：</span><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">CopyRead</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">UnixStream</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">properties</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> CopyParams &#123;<br>        <span class="hljs-comment">// ...</span><br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">CopyRead</span> <span class="hljs-keyword">for</span> &amp;UnixStream &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">properties</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> CopyParams &#123;<br>        <span class="hljs-comment">// ...</span><br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">CopyWrite</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">UnixStream</span> &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">properties</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> CopyParams &#123;<br>        <span class="hljs-comment">// ...</span><br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">impl</span> <span class="hljs-title class_">CopyWrite</span> <span class="hljs-keyword">for</span> &amp;UnixStream &#123;<br>    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">properties</span>(&amp;<span class="hljs-keyword">self</span>) <span class="hljs-punctuation">-&gt;</span> CopyParams &#123;<br>        <span class="hljs-comment">// ...</span><br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 这样在 File, TcpStream, UnixStream, Pipe, Character Device 等文件描述符之间进行 copy 时</span><br><span class="hljs-comment">// 就会使用第二个 SpecCopy::copy 实现，利用 Super Trait: CopyRead, CopyWrite 配合泛型参数进行</span><br><span class="hljs-comment">// 编译时的静态分发，实现多态，高效而巧妙；扩展性方面，有新的 reader / writer 需要支持，只需要实现</span><br><span class="hljs-comment">// CopyRead, CopyWrite 即可。</span><br></code></pre></td></tr></table></figure>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Rust 零拷贝测试及代码设计</div>
+      <div>http://smalnote.github.io/2024/12/16/rust_zero_copy/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>smalnote</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年12月16日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/12/16/little_piece_shell_code_to_lint_path/" title="一段简短的脚本代码 Lint PATH 变量">
+                        <span class="hidden-mobile">一段简短的脚本代码 Lint PATH 变量</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
