@@ -5,9 +5,7 @@ date: 2024-12-16 15:57:00
 
 ## 简介
 
-> 本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux/C API 做对比，主要
-> 场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单
-> 读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。
+> 本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux/C API 做对比，主要场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。
 
 ## 运行环境
 
@@ -18,13 +16,7 @@ date: 2024-12-16 15:57:00
 
 ## 总结
 
-零拷贝 API 对于**时间复杂度**的降低绝对值上并没有太大效果，原理上减少的时间消耗来自于减少在
-Linux 用户态和内核态之间进行上下文切换的次数和在用户态及内核态之间进行的内存拷贝，这部分时间相
-对于通过网络伟输数据消耗的时间小了一个量级。
-
-在原理上，零拷贝相对于普通的 Read/Write Loop 减少了内存缓存空间使用和内存拷贝次数，从 CPU 运
-行时间占用看，提升理论上应该比较明显，可以**_显著降低 CPU 占用率_**；不需要内存缓存空间在
-**_高并发场景下也可以减少内存占用率_**。
+零拷贝 API 对于**时间复杂度**的降低绝对值上并没有太大效果，原理上减少的时间消耗来自于减少在 Linux 用户态和内核态之间进行上下文切换的次数和在用户态及内核态之间进行的内存拷贝，这部分时间相对于通过网络伟输数据消耗的时间小了一个量级。在原理上，零拷贝相对于普通的 Read/Write Loop 减少了内存缓存空间使用和内存拷贝次数，从 CPU 运行时间占用看，提升理论上应该比较明显，可以**_显著降低 CPU 占用率_**；不需要内存缓存空间在**_高并发场景下也可以减少内存占用率_**。
 
 ## 性能测试
 
@@ -56,9 +48,7 @@ nc -lU /tmp/zero_copy.sock >/dev/null && rm /tmp/zero_copy.sock
 | Rust nix::sys::sendfile::sendfile64 | 575ms | 63.4%  |
 
 > [!NOTE]
-> API splice/pipe use a pipe to connect filefd and sockfd, according to `man 2 spclie`,
-> the splice function requires one of file descriptor to be pipe, result in:
-> splice(filefd, pipefd[1]) and splice(pipefd[1], sockfd).
+> API splice/pipe use a pipe to connect filefd and sockfd, according to `man 2 spclie`, the splice function requires one of file descriptor to be pipe, result in: splice(filefd, pipefd[1]) and splice(pipefd[1], sockfd).
 
 **Copy 8GB file from tmpfs to local Unix domain socket**
 
@@ -137,10 +127,7 @@ fn copy_file_to_unix_domain_socket<'a>(file_path: &'a str, socket_path: &'a str)
 | Socket/Pipe   | Pipe             | splice          |
 
 > [!NOTE]
-> 由于在执行拷贝时，是按顺序尝试 copy_file_range, sendfile, splice，尝试过程可能会改变文件
-> 描述符，因此对 sendfile, splice 设置了 safe_kernel_copy 检查，要求 output 是 Pipe/Socket,
-> 或 input 是 File，但是 sendfile 要求 output 是 File，导到 File -> Pipe, File -> Socket
-> 不能用到 sendfile。
+> 由于在执行拷贝时，是按顺序尝试 copy_file_range, sendfile, splice，尝试过程可能会改变文件描述符，因此对 sendfile, splice 设置了 safe_kernel_copy 检查，要求 output 是 Pipe/Socket,或 input 是 File，但是 sendfile 要求 output 是 File，导到 File -> Pipe, File -> Socket 不能用到 sendfile。
 
 | ｜ Zero-copy API | Input Constraints             | Output constraints |
 | ---------------- | ----------------------------- | ------------------ |
