@@ -4,6 +4,19 @@
   
   
   <entry>
+    <title></title>
+    <link href="/2024/12/16/little_piece_shell_code_to_lint_path/"/>
+    <url>/2024/12/16/little_piece_shell_code_to_lint_path/</url>
+    
+    <content type="html"><![CDATA[<h1 id="一段简短的脚本代码-Lint-PATH-变量"><a href="#一段简短的脚本代码-Lint-PATH-变量" class="headerlink" title="一段简短的脚本代码 Lint PATH 变量"></a>一段简短的脚本代码 Lint PATH 变量</h1><p>在不同开发环境不同账户下，需要往 PATH 变量中加入不同的文件夹，同时为了集中管理，<br>通常我会把 <code>.bashrc</code>, <code>.zshrc</code> 等 dotfiles 放到 Github 上，这就导致一个 rc 文件<br>需要适配 MacOS, Linux 环境；不同环境需要加的文件夹可能不一样，一开始我的方法是<br>按主机名，后来是写一个 append_path 函数，在加文件夹时检查参数是否为存在，是否为<br>文件夹，是否已经加过。</p><p>去重的必要性，添加文件夹到 PATH 时，一般用的是增量的 PATH&#x3D;$PATH:&#x2F;path&#x2F;to&#x2F;dir ,<br>同时修改 rc 后我通常是用 source 命令来使修改生效，这样每 source 一次就会使 PATH<br>附上同一个文件夹，对于有洁癖的我来说无法接受。</p><p>最新的解决方法是，附加文件夹到 PATH 时不做任何处理，只在 rc 脚本的最后 lint 一下<br>PATH 变量，确保 PATH 中的文件夹是存在的且不重复的。</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs sh"><span class="hljs-comment"># Lint PATH: remove directory not exists, remove duplicates</span><br><span class="hljs-comment"># Use colon as delimiter, append a colon to $PATH to read the last path dir</span><br><span class="hljs-built_in">declare</span> new_path=<span class="hljs-string">&quot;&quot;</span><br><span class="hljs-keyword">while</span> <span class="hljs-built_in">read</span> -r -d : <span class="hljs-built_in">dir</span>; <span class="hljs-keyword">do</span><br>  <span class="hljs-keyword">if</span> [[ -n <span class="hljs-string">&quot;<span class="hljs-variable">$dir</span>&quot;</span> &amp;&amp; -d <span class="hljs-string">&quot;<span class="hljs-variable">$dir</span>&quot;</span> &amp;&amp; <span class="hljs-string">&quot;:<span class="hljs-variable">$new_path</span>:&quot;</span> != *:<span class="hljs-string">&quot;<span class="hljs-variable">$dir</span>&quot;</span>:* ]]; <span class="hljs-keyword">then</span><br>    new_path+=<span class="hljs-string">&quot;<span class="hljs-variable">$dir</span>&quot;</span>:<br>  <span class="hljs-keyword">fi</span><br><span class="hljs-keyword">done</span> &lt;&lt;&lt;<span class="hljs-string">&quot;<span class="hljs-variable">$PATH</span>&quot;</span>:<br>PATH=<span class="hljs-variable">$&#123;new_path%:&#125;</span><br><span class="hljs-built_in">unset</span> new_path<br><span class="hljs-built_in">export</span> PATH<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>如何实现一个 Golang 代码生成器</title>
     <link href="/2022/11/27/Golang%20%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%AE%9E%E8%B7%B5%E5%85%A5%E9%97%A8/"/>
     <url>/2022/11/27/Golang%20%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%AE%9E%E8%B7%B5%E5%85%A5%E9%97%A8/</url>
