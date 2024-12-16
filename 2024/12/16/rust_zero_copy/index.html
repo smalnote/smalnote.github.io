@@ -24,7 +24,7 @@
 <meta property="og:description" content="简介 本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux&#x2F;C API 做对比，主要场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。  运行环境 CPU: E5-2680v4 Mem: 48GB OS: AlmaLinux 9 Host: KVM  总结">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-12-16T07:57:00.000Z">
-<meta property="article:modified_time" content="2024-12-16T08:08:08.603Z">
+<meta property="article:modified_time" content="2024-12-16T08:12:58.756Z">
 <meta property="article:author" content="smalnote">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -274,7 +274,7 @@
               <div class="markdown-body">
                 
                 <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
-<p>本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux&#x2F;C API 做对比，主要<br>场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单<br>读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。</p>
+<p>本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux&#x2F;C API 做对比，主要场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。</p>
 </blockquote>
 <h2 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h2><ul>
 <li>CPU: E5-2680v4</li>
@@ -282,8 +282,7 @@
 <li>OS: AlmaLinux 9</li>
 <li>Host: KVM</li>
 </ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>零拷贝 API 对于<strong>时间复杂度</strong>的降低绝对值上并没有太大效果，原理上减少的时间消耗来自于减少在<br>Linux 用户态和内核态之间进行上下文切换的次数和在用户态及内核态之间进行的内存拷贝，这部分时间相<br>对于通过网络伟输数据消耗的时间小了一个量级。</p>
-<p>在原理上，零拷贝相对于普通的 Read&#x2F;Write Loop 减少了内存缓存空间使用和内存拷贝次数，从 CPU 运<br>行时间占用看，提升理论上应该比较明显，可以**<em>显著降低 CPU 占用率</em>**；不需要内存缓存空间在<br>**<em>高并发场景下也可以减少内存占用率</em>**。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>零拷贝 API 对于<strong>时间复杂度</strong>的降低绝对值上并没有太大效果，原理上减少的时间消耗来自于减少在 Linux 用户态和内核态之间进行上下文切换的次数和在用户态及内核态之间进行的内存拷贝，这部分时间相对于通过网络伟输数据消耗的时间小了一个量级。在原理上，零拷贝相对于普通的 Read&#x2F;Write Loop 减少了内存缓存空间使用和内存拷贝次数，从 CPU 运行时间占用看，提升理论上应该比较明显，可以**<em>显著降低 CPU 占用率</em><strong>；不需要内存缓存空间在</strong><em>高并发场景下也可以减少内存占用率</em>**。</p>
 <h2 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h2><p><strong>Unix Domain Socket Server</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># Use netcat to listen unix domain socket and drop file to /dev/null</span><br>nc -lU /tmp/zero_copy.sock &gt;/dev/null &amp;&amp; <span class="hljs-built_in">rm</span> /tmp/zero_copy.sock<br></code></pre></td></tr></table></figure>
 
@@ -358,7 +357,7 @@
 </tr>
 </tbody></table>
 <blockquote>
-<p>[!NOTE]<br>API splice&#x2F;pipe use a pipe to connect filefd and sockfd, according to <code>man 2 spclie</code>,<br>the splice function requires one of file descriptor to be pipe, result in:<br>splice(filefd, pipefd[1]) and splice(pipefd[1], sockfd).</p>
+<p>[!NOTE]<br>API splice&#x2F;pipe use a pipe to connect filefd and sockfd, according to <code>man 2 spclie</code>, the splice function requires one of file descriptor to be pipe, result in: splice(filefd, pipefd[1]) and splice(pipefd[1], sockfd).</p>
 </blockquote>
 <p><strong>Copy 8GB file from tmpfs to local Unix domain socket</strong></p>
 <ul>
@@ -468,7 +467,7 @@
 </tr>
 </tbody></table>
 <blockquote>
-<p>[!NOTE]<br>由于在执行拷贝时，是按顺序尝试 copy_file_range, sendfile, splice，尝试过程可能会改变文件<br>描述符，因此对 sendfile, splice 设置了 safe_kernel_copy 检查，要求 output 是 Pipe&#x2F;Socket,<br>或 input 是 File，但是 sendfile 要求 output 是 File，导到 File -&gt; Pipe, File -&gt; Socket<br>不能用到 sendfile。</p>
+<p>[!NOTE]<br>由于在执行拷贝时，是按顺序尝试 copy_file_range, sendfile, splice，尝试过程可能会改变文件描述符，因此对 sendfile, splice 设置了 safe_kernel_copy 检查，要求 output 是 Pipe&#x2F;Socket,或 input 是 File，但是 sendfile 要求 output 是 File，导到 File -&gt; Pipe, File -&gt; Socket 不能用到 sendfile。</p>
 </blockquote>
 <table>
 <thead>
