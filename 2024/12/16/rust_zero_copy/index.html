@@ -20,17 +20,17 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Rust 零拷贝测试及代码设计">
 <meta property="og:url" content="http://smalnote.github.io/2024/12/16/rust_zero_copy/index.html">
-<meta property="og:site_name" content="Smalnote">
+<meta property="og:site_name" content="smalnote">
 <meta property="og:description" content="简介 本文主要测试一下 Rust 在 Linux 环境下零拷贝的性能，并跟 Linux&#x2F;C API 做对比，主要场景是 Web 服务器从磁盘文件数据不需要业务逻辑处理直接通过网络连接发送。同时简单读一下 std::io::copy 源代码，看看其是如何做零拷贝优化的。  运行环境 CPU: E5-2680v4 Mem: 48GB OS: AlmaLinux 9 Host: KVM  总结">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-12-16T07:57:00.000Z">
-<meta property="article:modified_time" content="2024-12-16T08:12:58.756Z">
+<meta property="article:modified_time" content="2024-12-16T08:17:42.969Z">
 <meta property="article:author" content="smalnote">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>Rust 零拷贝测试及代码设计 - Smalnote</title>
+  <title>Rust 零拷贝测试及代码设计 - smalnote</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
